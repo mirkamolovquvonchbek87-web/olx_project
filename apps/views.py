@@ -138,6 +138,23 @@ class AnnouncementCreateView(LoginRequiredMixin, CreateView):
         context['top_categories'] = Category.objects.filter(parent=None)
         return context
 
+    def form_valid(self, form):
+        form.instance.seller_type = self.request.POST.get("seller_type", "private")
+
+        raw_attr = self.request.POST.get("attribute", "{}")
+        try:
+            form.instance.attribute = json.loads(raw_attr)
+        except Exception:
+            form.instance.attribute = {}
+
+        resp = super().form_valid(form)
+
+        images = self.request.FILES.getlist("images")
+
+        for img in images:
+            ProductImage.objects.create(product=self.object, image=img)
+
+        return resp
 
 
 
@@ -146,17 +163,3 @@ def category_attributes(request, slug):
     return JsonResponse(cat.attribute or [], safe=False)
 
 
-def form_valid(self, form):
-    raw = self.request.POST.get('attribute', '{}')
-    try:
-        form.instance.attribute = json.loads(raw) if raw else {}
-    except json.JSONDecodeError:
-        form.instance.attribute = {}
-
-    resp = super().form_valid(form)
-
-    images = self.request.FILES.getlist("images")[:8]
-    for i, img in enumerate(images):
-        ProductImage.objects.create(product=self.object, image=img, order=i)
-
-    return resp

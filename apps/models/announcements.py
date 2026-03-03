@@ -1,4 +1,4 @@
-from django.db.models import CharField, CASCADE, ManyToManyField, ForeignKey, JSONField, TextChoices, Model
+from django.db.models import CharField, CASCADE, ManyToManyField, ForeignKey, JSONField, TextChoices, Model, ImageField
 from django.db.models.fields import PositiveIntegerField, PositiveSmallIntegerField, TextField
 from mptt.fields import TreeForeignKey
 from mptt.models import MPTTModel
@@ -46,4 +46,5 @@ class Announcement(SlugBaseModel, CreatedBaseModel):
 
 
 class ProductImage(ImageBaseModel):
+    image = ImageField(upload_to='products/%Y/%m/%d')
     product = ForeignKey('apps.Announcement', CASCADE, related_name='images')

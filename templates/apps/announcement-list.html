@@ -283,7 +283,7 @@
         {% for announcement in announcements %}
             <div class="bg-white rounded overflow-hidden shadow-sm flex flex-col md:flex-row relative group hover:shadow-md transition">
                 <div class="w-full md:w-72 h-48 relative flex-shrink-0">
-                    <img src="{{ announcement.image.url }}" class="w-full h-full object-cover">
+                    <img src="{{ announcement.images.first.image.url }}" class="w-full h-full object-cover" alt="" >
                     <span class="absolute bottom-2 left-2 bg-[#23e5db] text-[#002f34] text-[10px] font-bold px-1 uppercase">ТОП</span>
                 </div>
 
