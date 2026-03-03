@@ -8,9 +8,6 @@ from apps.models.base import ImageBaseModel, SlugBaseModel, CreatedBaseModel
 class Category(SlugBaseModel, ImageBaseModel, MPTTModel):
     name = CharField(max_length=255)
     parent = TreeForeignKey('self', CASCADE, null=True, blank=True, related_name='children')
-    manufacturers = ManyToManyField('apps.Manufacturer',
-                                    through='apps.ManufactureCategory',
-                                    related_name='categories')
     attribute = JSONField(blank=True, null=True)
 
     def __str__(self):
@@ -20,23 +17,15 @@ class Category(SlugBaseModel, ImageBaseModel, MPTTModel):
         order_insertion_by = ['name']
 
 
-class Manufacturer(CreatedBaseModel, SlugBaseModel, ImageBaseModel):
-    name = CharField(max_length=255)
-    attribute = JSONField(blank=True, null=True)
-
-    def __str__(self):
-        return self.name
-
-
-class ManufactureCategory(Model):
-    manufacturer = ForeignKey('apps.Manufacturer', CASCADE, to_field='slug')
-    category = ForeignKey('apps.Category', CASCADE, to_field='slug')
-
 
 class Announcement(SlugBaseModel, CreatedBaseModel):
     class AnnouncementType(TextChoices):
         SIMPLE = "simple", "SIMPLE"
         VIP = "vip", "VIP"
+
+    class SellerTypeChoices(TextChoices):
+        PRIVATE = "private", "PRIVATE"
+        BUSINESS = "business", "BUSINESS"
 
     name = CharField(max_length=255)
     price = PositiveIntegerField()
@@ -45,6 +34,7 @@ class Announcement(SlugBaseModel, CreatedBaseModel):
     category = ForeignKey('apps.Category', CASCADE, related_name='products')
     product_type = CharField(max_length=10, choices=AnnouncementType.choices, default=AnnouncementType.SIMPLE)
     attribute = JSONField(blank=True, null=True)
+    seller_type = CharField(max_length=10,choices=SellerTypeChoices.choices, default=SellerTypeChoices.PRIVATE)
 
     @property
     def first_image(self):

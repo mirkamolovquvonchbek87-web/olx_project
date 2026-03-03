@@ -1,0 +1,38 @@
+[
+{
+    "model": "apps.announcement",
+    "pk": 1,
+    "fields": {
+        "slug": "cobolt-4-pozitsiya",
+        "updated_at": "2026-03-02T17:10:10.337Z",
+        "created_at": "2026-03-02T17:10:10.337Z",
+        "name": "Cobolt 4 pozitsiya",
+        "price": 16000,
+        "discount": 0,
+        "description": "qweryutilkjhgsfrgdthfjgmadqwedkqwedhquwdyqiuwndpqiwougdvqehbjokdk;qwnljkdqwd\r\nwqefmkuednfqf\r\neqfwefhuweyfgqieopflwe\r\nwefowieudfgeqhid",
+        "category": 8,
+        "product_type": "simple",
+        "attribute": {
+            "color": "Kumush rang",
+            "model": "Cobolt",
+            "owners": "1",
+            "car_body": "Universal",
+            "condition": "Yaxshi",
+            "fuel_type": "Gaz/Benzin",
+            "car_option": [
+                "Konditsioner",
+                "Oxoronna sistema"
+            ],
+            "motor_year": "2023",
+            "motor_mileage": "40000",
+            "terms_of_sale": [
+                "Oddiy sotish",
+                "Kredit"
+            ],
+            "motor_engine_size": "18",
+            "transmission_type": "Avtomatik"
+        },
+        "seller_type": "private"
+    }
+}
+]

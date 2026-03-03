@@ -1,13 +1,13 @@
 from django.urls import path
 from apps.views import AnnouncementListView, MainView, CustomLoginView, GoogleLoginView, GoogleCallbackView, \
-    ProfileUpdateView, CustomLogoutView, AnnouncementCreateView
+    ProfileUpdateView, CustomLogoutView, AnnouncementCreateView, category_attributes
 
 urlpatterns = [
     path('', MainView.as_view(), name='main_page'),
     path('category/<slug:slug>/', AnnouncementListView.as_view(), name='announcement_list_page'),
 
     path('adding/', AnnouncementCreateView.as_view(), name='add_page'),
-
+    path("categories/<slug:slug>/attributes/", category_attributes, name="category_attributes"),
 
     path('auth/login/', CustomLoginView.as_view(),  name='login_page'),
     path("auth/google-login", GoogleLoginView.as_view(), name='google_login_page'),

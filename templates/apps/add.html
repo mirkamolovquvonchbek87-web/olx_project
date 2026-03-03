@@ -277,6 +277,8 @@
     </div>
     </div>
     </header>
+<form method="post" enctype="multipart/form-data">
+  {% csrf_token %}
   <div class="wrap">
 
     <h1 class="text-[38px] font-bold mb-6">Создать объявление</h1>
@@ -289,7 +291,7 @@
       <div class="mb-6">
         <div class="label">Укажите название *</div>
 
-        <input id="titleInput" class="input" placeholder="Например, iPhone 11 с гарантией" />
+        <input id="titleInput" name="name" class="input" placeholder="Например, iPhone 11 с гарантией" />
 
         <div class="hint-row">
           <div class="flex items-center gap-2">
@@ -323,92 +325,74 @@
   </button>
 
   <!-- СЮДА запишем выбранную категорию (slug или id) -->
-  <input type="hidden" name="category" id="categorySelectedValue">
+  <input type="hidden" name="category" id="categorySelectedValue"/>
+</div>
+    <!-- Price -->
+<div class="mt-6 w-[420px]">
+  <div class="label">Цена *</div>
+  <input name="price" type="number" class="input" placeholder="Цена" required>
 </div>
     </section>
 
-        </div>
+<!-- CARD: ATTRIBUTES (dynamic, after category selected) -->
+<section id="attrsCard" class="card p-8 mb-5 hidden">
+  <h2 id="attrsTitle" class="text-[22px] font-bold mb-5">Qo'shimcha ma'lumot</h2>
 
+  <!-- seller_type (PRIVATE / BUSINESS) -->
+  <div id="sellerTypeWrap" class="mb-6 hidden">
+    <div class="label">Xususiy yoki biznes *</div>
+
+    <div class="grid grid-cols-2 gap-3 w-[420px]">
+      <button type="button" class="px-4 h-12 rounded border bg-white font-semibold"
+              data-seller="private" id="sellerPrivateBtn">
+        Jismoniy shaxs
+      </button>
+      <button type="button" class="px-4 h-12 rounded border bg-[#f2f4f5] font-semibold"
+              data-seller="business" id="sellerBusinessBtn">
+        Biznes
+      </button>
+    </div>
+
+    <input type="hidden" name="seller_type" id="sellerTypeInput" value="private"/>
+  </div>
+
+  <!-- dynamic fields go here -->
+  <div id="attrsContainer" class="space-y-6"></div>
+
+  <!-- this is what you will save into Announcement.attribute -->
+  <input type="hidden" name="attribute" id="attributesJson" value="{}">
+</section>
 
     <!-- CARD: PHOTOS -->
-    <section class="card p-8 mb-5">
-      <h2 class="text-[22px] font-bold mb-2">Фото</h2>
-      <p class="text-[14px] text-[var(--muted)] mb-4">
-        Первое фото будет на обложке объявления. Перетащите, чтобы изменить порядок.
-      </p>
+    <!-- CARD: PHOTOS -->
+<section class="card p-8 mb-5">
+  <div class="flex items-center justify-between">
+    <h2 class="text-[22px] font-bold">Фото</h2>
+    <div id="photoCounter" class="text-sm text-gray-500">0/8</div>
+  </div>
 
-      <div class="grid grid-cols-4 gap-4">
-        <!-- add -->
-        <div class="tile tile-add">
-          <a href="javascript:void(0)">Добавить фото</a>
-        </div>
+  <p class="text-[14px] text-[var(--muted)] mb-4">
+    Первое фото будет на обложке объявления. Максимум 8 фото.
+  </p>
 
-        <!-- tiles -->
-        <div class="tile">
-          <!-- camera -->
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M9 7.2 10.2 5.7c.3-.4.8-.7 1.3-.7h1c.5 0 1 .3 1.3.7L16 7.2" stroke="#3c5b60" stroke-width="1.6" stroke-linecap="round"/>
-            <path d="M6.5 7.2h11.2c1 0 1.8.8 1.8 1.8v8.4c0 1-.8 1.8-1.8 1.8H6.5c-1 0-1.8-.8-1.8-1.8V9c0-1 .8-1.8 1.8-1.8Z" stroke="#3c5b60" stroke-width="1.6"/>
-            <path d="M12 16.1a3.1 3.1 0 1 0 0-6.2 3.1 3.1 0 0 0 0 6.2Z" stroke="#3c5b60" stroke-width="1.6"/>
-          </svg>
-        </div>
+  <!-- hidden input for files -->
+  <input id="imagesInput" type="file" name="images" accept="image/*" multiple class="hidden" />
 
-        <div class="tile">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M9 7.2 10.2 5.7c.3-.4.8-.7 1.3-.7h1c.5 0 1 .3 1.3.7L16 7.2" stroke="#3c5b60" stroke-width="1.6" stroke-linecap="round"/>
-            <path d="M6.5 7.2h11.2c1 0 1.8.8 1.8 1.8v8.4c0 1-.8 1.8-1.8 1.8H6.5c-1 0-1.8-.8-1.8-1.8V9c0-1 .8-1.8 1.8-1.8Z" stroke="#3c5b60" stroke-width="1.6"/>
-            <path d="M12 16.1a3.1 3.1 0 1 0 0-6.2 3.1 3.1 0 0 0 0 6.2Z" stroke="#3c5b60" stroke-width="1.6"/>
-          </svg>
-        </div>
-
-        <div class="tile">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M9 7.2 10.2 5.7c.3-.4.8-.7 1.3-.7h1c.5 0 1 .3 1.3.7L16 7.2" stroke="#3c5b60" stroke-width="1.6" stroke-linecap="round"/>
-            <path d="M6.5 7.2h11.2c1 0 1.8.8 1.8 1.8v8.4c0 1-.8 1.8-1.8 1.8H6.5c-1 0-1.8-.8-1.8-1.8V9c0-1 .8-1.8 1.8-1.8Z" stroke="#3c5b60" stroke-width="1.6"/>
-            <path d="M12 16.1a3.1 3.1 0 1 0 0-6.2 3.1 3.1 0 0 0 0 6.2Z" stroke="#3c5b60" stroke-width="1.6"/>
-          </svg>
-        </div>
-
-        <div class="tile">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M9 7.2 10.2 5.7c.3-.4.8-.7 1.3-.7h1c.5 0 1 .3 1.3.7L16 7.2" stroke="#3c5b60" stroke-width="1.6" stroke-linecap="round"/>
-            <path d="M6.5 7.2h11.2c1 0 1.8.8 1.8 1.8v8.4c0 1-.8 1.8-1.8 1.8H6.5c-1 0-1.8-.8-1.8-1.8V9c0-1 .8-1.8 1.8-1.8Z" stroke="#3c5b60" stroke-width="1.6"/>
-            <path d="M12 16.1a3.1 3.1 0 1 0 0-6.2 3.1 3.1 0 0 0 0 6.2Z" stroke="#3c5b60" stroke-width="1.6"/>
-          </svg>
-        </div>
-
-        <div class="tile">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M9 7.2 10.2 5.7c.3-.4.8-.7 1.3-.7h1c.5 0 1 .3 1.3.7L16 7.2" stroke="#3c5b60" stroke-width="1.6" stroke-linecap="round"/>
-            <path d="M6.5 7.2h11.2c1 0 1.8.8 1.8 1.8v8.4c0 1-.8 1.8-1.8 1.8H6.5c-1 0-1.8-.8-1.8-1.8V9c0-1 .8-1.8 1.8-1.8Z" stroke="#3c5b60" stroke-width="1.6"/>
-            <path d="M12 16.1a3.1 3.1 0 1 0 0-6.2 3.1 3.1 0 0 0 0 6.2Z" stroke="#3c5b60" stroke-width="1.6"/>
-          </svg>
-        </div>
-
-        <div class="tile">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M9 7.2 10.2 5.7c.3-.4.8-.7 1.3-.7h1c.5 0 1 .3 1.3.7L16 7.2" stroke="#3c5b60" stroke-width="1.6" stroke-linecap="round"/>
-            <path d="M6.5 7.2h11.2c1 0 1.8.8 1.8 1.8v8.4c0 1-.8 1.8-1.8 1.8H6.5c-1 0-1.8-.8-1.8-1.8V9c0-1 .8-1.8 1.8-1.8Z" stroke="#3c5b60" stroke-width="1.6"/>
-            <path d="M12 16.1a3.1 3.1 0 1 0 0-6.2 3.1 3.1 0 0 0 0 6.2Z" stroke="#3c5b60" stroke-width="1.6"/>
-          </svg>
-        </div>
-
-        <div class="tile">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-            <path d="M9 7.2 10.2 5.7c.3-.4.8-.7 1.3-.7h1c.5 0 1 .3 1.3.7L16 7.2" stroke="#3c5b60" stroke-width="1.6" stroke-linecap="round"/>
-            <path d="M6.5 7.2h11.2c1 0 1.8.8 1.8 1.8v8.4c0 1-.8 1.8-1.8 1.8H6.5c-1 0-1.8-.8-1.8-1.8V9c0-1 .8-1.8 1.8-1.8Z" stroke="#3c5b60" stroke-width="1.6"/>
-            <path d="M12 16.1a3.1 3.1 0 1 0 0-6.2 3.1 3.1 0 0 0 0 6.2Z" stroke="#3c5b60" stroke-width="1.6"/>
-          </svg>
-        </div>
-      </div>
-    </section>
+  <!-- grid -->
+  <div id="photosGrid" class="grid grid-cols-4 gap-4">
+    <!-- add tile -->
+    <button type="button" id="addPhotoBtn" class="tile tile-add">
+      <span class="underline text-[18px] font-bold">Добавить фото</span>
+    </button>
+  </div>
+</section>
 
     <!-- CARD: DESCRIPTION -->
     <section class="card p-8 mb-5">
       <div class="label">Описание *</div>
 
       <div class="relative">
-        <textarea id="descInput" class="textarea" placeholder="Подумайте, какие подробности вы хотели бы узнать из объявления. И добавьте их в описание"></textarea>
+        <textarea id="descInput" name="description" class="textarea" placeholder="Подумайте, какие подробности вы хотели бы узнать из объявления. И добавьте их в описание"></textarea>
 
         <!-- check -->
         <div class="absolute right-4 top-4">
@@ -455,7 +439,7 @@
       <div class="label">Местоположение*</div>
 
       <div class="relative w-[360px]">
-        <input class="input"  placeholder="Название города или индекс" />
+        <input class="input"   placeholder="Название города или индекс" />
         <div class="absolute right-4 top-1/2 -translate-y-1/2">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M20 7 10 17l-4-4" stroke="#0A7A6A" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
@@ -500,11 +484,12 @@
     <section class="card p-8">
       <div class="flex items-center justify-end gap-14">
         <a class="preview-link" href="javascript:void(0)">Предпросмотр</a>
-        <button class="btn">Опубликовать</button>
+        <button type="submit" class="btn">Опубликовать</button>
       </div>
     </section>
 
   </div>
+</form>
 
 <!-- MODAL: Category picker -->
 <div id="categoryModal" class="fixed inset-0 hidden z-[999]">
@@ -539,42 +524,22 @@
 </div>
 
   <script>
-    const titleInput = document.getElementById("titleInput");
-const titleCount = document.getElementById("titleCount");
-const descInput = document.getElementById("descInput");
-const descCount = document.getElementById("descCount");
-
-function updateTitle(){
-  const n = titleInput.value.length;
-  titleCount.textContent = `${n}/70`;
-}
-
-function updateDesc(){
-  const n = descInput.value.length;
-  descCount.textContent = `${n}/9000`;
-}
-
-titleInput.addEventListener("input", updateTitle);
-descInput.addEventListener("input", updateDesc);
-
-updateTitle();
-updateDesc();
-  </script>
-<script>
   // -------------- DATA from Django (3 levels) --------------
   const CATEGORY_TREE = [
     {% for c1 in top_categories %}
       {
+        id: "{{ c1.id }}",
         name: "{{ c1.name|escapejs }}",
         slug: "{{ c1.slug|escapejs }}",
         children: [
           {% for c2 in c1.children.all %}
             {
+              id: "{{ c2.id }}",
               name: "{{ c2.name|escapejs }}",
               slug: "{{ c2.slug|escapejs }}",
               children: [
                 {% for c3 in c2.children.all %}
-                  { name: "{{ c3.name|escapejs }}", slug: "{{ c3.slug|escapejs }}" },
+                  { id: "{{ c3.id }}", name: "{{ c3.name|escapejs }}", slug: "{{ c3.slug|escapejs }}" },
                 {% endfor %}
               ]
             },
@@ -597,11 +562,9 @@ updateDesc();
   const selectedText = document.getElementById("categorySelectedText");
   const selectedValue = document.getElementById("categorySelectedValue");
 
-  // active selections
   let active1 = null;
   let active2 = null;
 
-  // -------------- helpers --------------
   function openModal(){
     modal.classList.remove("hidden");
     document.body.style.overflow = "hidden";
@@ -621,6 +584,21 @@ updateDesc();
     `;
   }
 
+  function selectCategory(id, name, slug){
+    // показываем выбранный текст
+    selectedText.textContent = name;
+
+    // ВАЖНО: FK в Django ждёт ID, НЕ slug
+    selectedValue.value = id;
+
+    closeModal();
+
+    // после выбора категории -> загружаем атрибуты
+    if (typeof loadCategoryAttributes === "function") {
+      loadCategoryAttributes(slug);
+    }
+  }
+
   function renderCol1(){
     col1.innerHTML = "";
     CATEGORY_TREE.forEach((c, idx) => {
@@ -636,8 +614,9 @@ updateDesc();
         active2 = null;
         renderCol1();
         renderCol2();
-        renderCol3(); // очистим
+        renderCol3();
       };
+
       col1.appendChild(row);
     });
   }
@@ -645,7 +624,6 @@ updateDesc();
   function renderCol2(){
     col2.innerHTML = "";
     col3.innerHTML = "";
-
     if (active1 === null) return;
 
     const parent = CATEGORY_TREE[active1];
@@ -653,7 +631,8 @@ updateDesc();
 
     // "Все в <категория>"
     const allRow = document.createElement("div");
-    allRow.onclick = () => selectCategory(parent.name, parent.slug);
+    allRow.innerHTML = itemRow({ label: `Все в ${parent.name}`, hasNext: false });
+    allRow.onclick = () => selectCategory(parent.id, parent.name, parent.slug);
     col2.appendChild(allRow);
 
     children.forEach((c, idx) => {
@@ -664,18 +643,16 @@ updateDesc();
         hasNext: (c.children && c.children.length)
       });
 
-      // hover как на OLX
       row.onmouseenter = () => {
         active2 = idx;
-        renderCol2();     // перерисуем выделение
-        renderCol3();     // покажем 3 колонку
+        renderCol2();
+        renderCol3();
       };
 
-      // клик: если нет детей — выбираем
       row.onclick = () => {
         active2 = idx;
         if (!c.children || c.children.length === 0) {
-          selectCategory(c.name, c.slug);
+          selectCategory(c.id, c.name, c.slug);
         } else {
           renderCol3();
         }
@@ -696,29 +673,21 @@ updateDesc();
 
     // "Все в <подкатегория>"
     const allRow = document.createElement("div");
-    allRow.onclick = () => selectCategory(c2.name, c2.slug);
+    allRow.innerHTML = itemRow({ label: `Все в ${c2.name}`, hasNext:false });
+    allRow.onclick = () => selectCategory(c2.id, c2.name, c2.slug);
     col3.appendChild(allRow);
 
-    // список
     children3.forEach(c3 => {
       const row = document.createElement("div");
       row.innerHTML = itemRow({ label: c3.name, hasNext:false });
-      row.onclick = () => selectCategory(c3.name, c3.slug);
+      row.onclick = () => selectCategory(c3.id, c3.name, c3.slug);
       col3.appendChild(row);
     });
-  }
-
-  function selectCategory(name, slug){
-    selectedText.textContent = name;
-    selectedValue.value = slug;     // отправится в form
-    closeModal();
   }
 
   // -------------- events --------------
   openBtn.addEventListener("click", () => {
     openModal();
-
-    // дефолт: открыть первый уровень
     if (active1 === null && CATEGORY_TREE.length) active1 = 0;
     renderCol1();
     renderCol2();
@@ -731,6 +700,301 @@ updateDesc();
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && !modal.classList.contains("hidden")) closeModal();
   });
+
+
+  const attrsCard = document.getElementById("attrsCard");
+  const attrsTitle = document.getElementById("attrsTitle");
+  const attrsContainer = document.getElementById("attrsContainer");
+  const attributesJson = document.getElementById("attributesJson");
+
+  const sellerTypeWrap = document.getElementById("sellerTypeWrap");
+  const sellerTypeInput = document.getElementById("sellerTypeInput");
+  const sellerPrivateBtn = document.getElementById("sellerPrivateBtn");
+  const sellerBusinessBtn = document.getElementById("sellerBusinessBtn");
+
+  const ATTR_URL_TEMPLATE = "{% url 'category_attributes' '___slug___' %}";
+
+  function showAttrs(){ attrsCard.classList.remove("hidden"); }
+  function hideAttrs(){
+    attrsCard.classList.add("hidden");
+    attrsContainer.innerHTML = "";
+    attributesJson.value = "{}";
+    sellerTypeWrap.classList.add("hidden");
+  }
+
+  function setSellerType(val){
+    sellerTypeInput.value = val;
+
+    if (val === "private") {
+      sellerPrivateBtn.classList.add("bg-white");
+      sellerPrivateBtn.classList.remove("bg-[#f2f4f5]");
+      sellerBusinessBtn.classList.add("bg-[#f2f4f5]");
+      sellerBusinessBtn.classList.remove("bg-white");
+    } else {
+      sellerBusinessBtn.classList.add("bg-white");
+      sellerBusinessBtn.classList.remove("bg-[#f2f4f5]");
+      sellerPrivateBtn.classList.add("bg-[#f2f4f5]");
+      sellerPrivateBtn.classList.remove("bg-white");
+    }
+
+    collectAttributes();
+  }
+
+  sellerPrivateBtn?.addEventListener("click", () => setSellerType("private"));
+  sellerBusinessBtn?.addEventListener("click", () => setSellerType("business"));
+
+  function collectAttributes(){
+    const result = {};
+
+    // single inputs/selects
+    attrsContainer.querySelectorAll("[data-attr-name][data-attr-kind='single']").forEach(el => {
+      result[el.dataset.attrName] = el.value;
+    });
+
+    // multiselect checkbox groups
+    attrsContainer.querySelectorAll("[data-attr-name][data-attr-kind='multiselect']").forEach(box => {
+      const key = box.dataset.attrName;
+      result[key] = [...box.querySelectorAll("input[type=checkbox]:checked")].map(i => i.value);
+    });
+
+    attributesJson.value = JSON.stringify(result);
+  }
+
+  function renderSelect(f){
+    const wrap = document.createElement("div");
+    wrap.innerHTML = `<div class="label">${f.label}${f.required ? " *" : ""}</div>`;
+
+    const select = document.createElement("select");
+    select.className = "input w-[420px]";
+    select.dataset.attrName = f.name;
+    select.dataset.attrKind = "single";
+
+    const ph = f.placeholder || "Tanlash";
+    select.innerHTML = `<option value="">${ph}</option>` + (f.options || [])
+      .map(o => `<option value="${o}">${o}</option>`).join("");
+
+    select.addEventListener("change", collectAttributes);
+    wrap.appendChild(select);
+    return wrap;
+  }
+
+  function renderInt(f){
+    const wrap = document.createElement("div");
+    wrap.innerHTML = `<div class="label">${f.label}${f.required ? " *" : ""}</div>`;
+
+    const holder = document.createElement("div");
+    holder.className = "relative w-[420px]";
+
+    const input = document.createElement("input");
+    input.type = "number";
+    input.className = "input";
+    input.dataset.attrName = f.name;
+    input.dataset.attrKind = "single";
+
+    // placeholder может быть единицей: "km", "cm³"
+    const ph = f.placeholder || "";
+    const looksLikeUnit = ph && ph.length <= 6;
+
+    if (looksLikeUnit) {
+      input.classList.add("pr-14");
+      const unit = document.createElement("div");
+      unit.className = "absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm";
+      unit.textContent = ph;
+      holder.appendChild(unit);
+    } else {
+      input.placeholder = ph;
+    }
+
+    input.addEventListener("input", collectAttributes);
+    holder.appendChild(input);
+    wrap.appendChild(holder);
+    return wrap;
+  }
+
+  function renderMultiSelect(f){
+    const wrap = document.createElement("div");
+    wrap.innerHTML = `<div class="label">${f.label}${f.required ? " *" : ""}</div>`;
+
+    const grid = document.createElement("div");
+    grid.className = "grid grid-cols-2 gap-4 w-[420px]";
+    grid.dataset.attrName = f.name;
+    grid.dataset.attrKind = "multiselect";
+
+    (f.options || []).forEach(opt => {
+      const label = document.createElement("label");
+      label.className = "flex items-center gap-3";
+      label.innerHTML = `
+        <input type="checkbox" class="h-5 w-5 rounded border" value="${opt}">
+        <span class="text-[15px]">${opt}</span>
+      `;
+      label.querySelector("input").addEventListener("change", collectAttributes);
+      grid.appendChild(label);
+    });
+
+    wrap.appendChild(grid);
+    return wrap;
+  }
+
+  function renderFields(fields){
+    attrsContainer.innerHTML = "";
+
+    fields.forEach(f => {
+      // f: {name,type,label,options,required,placeholder}
+      if (f.type === "select") attrsContainer.appendChild(renderSelect(f));
+      else if (f.type === "int") attrsContainer.appendChild(renderInt(f));
+      else if (f.type === "multiselect") attrsContainer.appendChild(renderMultiSelect(f));
+      else {
+        // fallback как текст
+        const wrap = document.createElement("div");
+        wrap.innerHTML = `<div class="label">${f.label || f.name}${f.required ? " *" : ""}</div>`;
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "input w-[420px]";
+        input.dataset.attrName = f.name;
+        input.dataset.attrKind = "single";
+        input.placeholder = f.placeholder || "";
+        input.addEventListener("input", collectAttributes);
+        wrap.appendChild(input);
+        attrsContainer.appendChild(wrap);
+      }
+    });
+
+    collectAttributes();
+  }
+
+  async function loadCategoryAttributes(slug){
+    try{
+      const url = ATTR_URL_TEMPLATE.replace("___slug___", slug);
+      const res = await fetch(url);
+      if (!res.ok) return hideAttrs();
+
+      const data = await res.json();
+
+      // Универсально: если вернулся список — это поля
+      const fields = Array.isArray(data) ? data : (data.fields || []);
+      if (!fields.length) return hideAttrs();
+
+      showAttrs();
+      attrsTitle.textContent = "Qo'shimcha ma'lumot";
+
+      // seller type: если хочешь всегда показывать — раскомментируй:
+      // sellerTypeWrap.classList.remove("hidden");
+
+      // или показывать только если сервер отдаст show_seller_type:
+      if (!Array.isArray(data) && data.show_seller_type) sellerTypeWrap.classList.remove("hidden");
+      else sellerTypeWrap.classList.add("hidden");
+
+      renderFields(fields);
+    } catch(e){
+      console.error(e);
+      hideAttrs();
+    }
+  }
+
+
+
+
+  const MAX_IMAGES = 8;
+
+  const imagesInput = document.getElementById("imagesInput");
+  const addPhotoBtn = document.getElementById("addPhotoBtn");
+  const photosGrid = document.getElementById("photosGrid");
+  const photoCounter = document.getElementById("photoCounter");
+
+  let filesState = []; // массив File
+
+  addPhotoBtn.addEventListener("click", () => imagesInput.click());
+
+  imagesInput.addEventListener("change", () => {
+    const newFiles = Array.from(imagesInput.files || []);
+    if (!newFiles.length) return;
+
+    // добавляем новые файлы
+    filesState = filesState.concat(newFiles);
+
+    // ограничение 8
+    if (filesState.length > MAX_IMAGES) {
+      alert(`Можно загрузить максимум ${MAX_IMAGES} фото.`);
+      filesState = filesState.slice(0, MAX_IMAGES);
+    }
+
+    syncInputFiles();
+    renderPreviews();
+
+    // чтобы повторно можно было выбрать те же файлы
+    imagesInput.value = "";
+  });
+
+  function syncInputFiles(){
+    const dt = new DataTransfer();
+    filesState.forEach(f => dt.items.add(f));
+    imagesInput.files = dt.files;
+  }
+
+  function renderPreviews(){
+    // очищаем и заново рисуем
+    photosGrid.innerHTML = "";
+
+    // add tile
+    photosGrid.appendChild(addPhotoBtn);
+
+    // counter
+    photoCounter.textContent = `${filesState.length}/${MAX_IMAGES}`;
+
+    filesState.forEach((file, idx) => {
+      const tile = document.createElement("div");
+      tile.className = "tile relative overflow-hidden bg-white border";
+      tile.draggable = true;                 // если не надо перетаскивание — убери эту строку
+      tile.dataset.index = String(idx);
+
+      const img = document.createElement("img");
+      img.src = URL.createObjectURL(file);
+      img.className = "w-full h-full object-cover";
+      img.onload = () => URL.revokeObjectURL(img.src);
+
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.className = "absolute top-2 right-2 bg-black/60 text-white w-8 h-8 rounded-full";
+      removeBtn.textContent = "×";
+      removeBtn.addEventListener("click", () => {
+        filesState.splice(idx, 1);
+        syncInputFiles();
+        renderPreviews();
+      });
+
+      // --- drag & drop reorder (опционально) ---
+      tile.addEventListener("dragstart", (e) => {
+        e.dataTransfer.setData("text/plain", String(idx));
+      });
+
+      tile.addEventListener("dragover", (e) => e.preventDefault());
+
+      tile.addEventListener("drop", (e) => {
+        e.preventDefault();
+        const from = Number(e.dataTransfer.getData("text/plain"));
+        const to = idx;
+        if (Number.isNaN(from) || from === to) return;
+
+        const moved = filesState.splice(from, 1)[0];
+        filesState.splice(to, 0, moved);
+
+        syncInputFiles();
+        renderPreviews();
+      });
+      // ---------------------------------------
+
+      tile.appendChild(img);
+      tile.appendChild(removeBtn);
+      photosGrid.appendChild(tile);
+    });
+
+    // если уже 8 — прячем кнопку добавления
+    addPhotoBtn.classList.toggle("hidden", filesState.length >= MAX_IMAGES);
+  }
+
+
+
+
 </script>
 </body>
 </html>

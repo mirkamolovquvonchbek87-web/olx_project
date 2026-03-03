@@ -3,6 +3,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 import requests
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views import View
@@ -12,6 +13,9 @@ from apps.models import Announcement, Category, User
 from django.views.generic import ListView
 from apps.models.announcements import ProductImage
 from root import settings
+import json
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
 
 
 class MainView(ListView):
@@ -33,8 +37,9 @@ class AnnouncementListView(ListView):
 
     def get_queryset(self):
         slug = self.kwargs.get("slug")
-        category = get_object_or_404(Category, slug=slug)
-        queryset = Announcement.objects.filter(category=category)
+        self.category = get_object_or_404(Category, slug=slug)
+        categories = self.category.get_descendants(include_self=True)
+        queryset = Announcement.objects.filter(category__in=categories)
         self.filterset = AnnouncementFilterSet(self.request.GET, queryset=queryset)
         return self.filterset.qs
 
@@ -124,26 +129,34 @@ class CustomLogoutView(View):
 
 class AnnouncementCreateView(LoginRequiredMixin, CreateView):
     model = Announcement
-    queryset = Announcement.objects.all()
     template_name = 'apps/add.html'
     fields = ['name', 'description', 'category', 'price']
-    MAX_IMAGES = 8
+    success_url = reverse_lazy('profile_page')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['top_categories'] = Category.objects.filter(parent=None)
         return context
 
-    def form_valid(self, form):
-        images = self.request.FILES.getlist("images")
 
-        if len(images) > self.MAX_IMAGES:
-            form.add_error(None, f"Можно загрузить максимум {self.MAX_IMAGES} фото.")
-            return self.form_invalid(form)
 
-        response = super().form_valid(form)
 
-        for i, img in enumerate(images):
-            ProductImage.objects.create(product=self.object, image=img, order=i)
+def category_attributes(request, slug):
+    cat = get_object_or_404(Category, slug=slug)
+    return JsonResponse(cat.attribute or [], safe=False)
 
-        return response
+
+def form_valid(self, form):
+    raw = self.request.POST.get('attribute', '{}')
+    try:
+        form.instance.attribute = json.loads(raw) if raw else {}
+    except json.JSONDecodeError:
+        form.instance.attribute = {}
+
+    resp = super().form_valid(form)
+
+    images = self.request.FILES.getlist("images")[:8]
+    for i, img in enumerate(images):
+        ProductImage.objects.create(product=self.object, image=img, order=i)
+
+    return resp
