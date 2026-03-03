@@ -9,7 +9,7 @@
         "parent": null,
         "attribute": null,
         "lft": 1,
-        "rght": 6,
+        "rght": 10,
         "tree_id": 3,
         "level": 0
     }
@@ -44,12 +44,148 @@
                 "type": "int",
                 "label": "Ishlab chiqarish yili",
                 "options": null,
+                "required": true,
+                "placeholder": null
+            },
+            {
+                "name": "model",
+                "type": "select",
+                "label": "Model",
+                "options": [
+                    "Cobolt",
+                    "Damas",
+                    "Epica"
+                ],
+                "required": true,
+                "placeholder": "Tanlash"
+            },
+            {
+                "name": "car_body",
+                "type": "select",
+                "label": "Kuzov turi",
+                "options": [
+                    "Kabriolet",
+                    "Pikap",
+                    "Kupe",
+                    "Universal",
+                    "Xetchbek",
+                    "Miniver",
+                    "Yo'l tanlamas",
+                    "Sedan",
+                    "Boshqa"
+                ],
+                "required": true,
+                "placeholder": "Tanlash"
+            },
+            {
+                "name": "motor_mileage",
+                "type": "int",
+                "label": "Bosgan yo'li",
+                "options": [
+                    "Kabriolet",
+                    "Pikap",
+                    "Kupe",
+                    "Universal",
+                    "Xetchbek",
+                    "Miniver",
+                    "Yo'l tanlamas",
+                    "Sedan",
+                    "Boshqa"
+                ],
+                "required": false,
+                "placeholder": "km"
+            },
+            {
+                "name": "transmission_type",
+                "type": "select",
+                "label": "Uzatmalar qutusi",
+                "options": [
+                    "Mexanik",
+                    "Avtomatik",
+                    "Boshqa"
+                ],
+                "required": true,
+                "placeholder": "Tanlash"
+            },
+            {
+                "name": "color",
+                "type": "select",
+                "label": "Rang",
+                "options": [
+                    "Oq",
+                    "Qora",
+                    "Kumush rang"
+                ],
+                "required": true,
+                "placeholder": "Tanlash"
+            },
+            {
+                "name": "motor_engine_size",
+                "type": "int",
+                "label": "Dvigetel hajmi",
+                "options": null,
+                "required": true,
+                "placeholder": "cm³"
+            },
+            {
+                "name": "fuel_type",
+                "type": "select",
+                "label": "Yonilg'i turi",
+                "options": [
+                    "Benzin",
+                    "Dizel",
+                    "Gibrid",
+                    "Gaz/Benzin",
+                    "Electro",
+                    "Boshqa"
+                ],
+                "required": true,
+                "placeholder": "Tanlash"
+            },
+            {
+                "name": "condition",
+                "type": "select",
+                "label": "Mashina holati",
+                "options": [
+                    "Idialniy",
+                    "Yaxshi",
+                    "O'rta",
+                    "Ta'mir talab"
+                ],
+                "required": true,
+                "placeholder": "Tanlash"
+            },
+            {
+                "name": "owners",
+                "type": "select",
+                "label": "Mulkdor soni",
+                "options": [
+                    "1",
+                    "2",
+                    "3",
+                    "4+"
+                ],
+                "required": false,
+                "placeholder": "Tanlash"
+            },
+            {
+                "name": "car_option",
+                "type": "multiselect",
+                "label": "Qoshimcha opsiyalar",
+                "options": [
+                    "Bojxonada rasmiylashtirilgan",
+                    "Konditsioner",
+                    "Elektr ko'zgular",
+                    "Oxoronna sistema",
+                    "El. oyna go'targichlar",
+                    "Parktornik"
+                ],
                 "required": false,
                 "placeholder": null
             }
         ],
-        "lft": 4,
-        "rght": 5,
+        "lft": 6,
+        "rght": 9,
         "tree_id": 3,
         "level": 1
     }
@@ -111,6 +247,197 @@
         "lft": 3,
         "rght": 4,
         "tree_id": 2,
+        "level": 2
+    }
+},
+{
+    "model": "apps.category",
+    "pk": 7,
+    "fields": {
+        "slug": "aftobuslar",
+        "image": "",
+        "name": "Aftobuslar",
+        "parent": 1,
+        "attribute": null,
+        "lft": 4,
+        "rght": 5,
+        "tree_id": 3,
+        "level": 1
+    }
+},
+{
+    "model": "apps.category",
+    "pk": 8,
+    "fields": {
+        "slug": "chevrolet",
+        "image": "category/2026/03/02/Chevrolet_1.jpg",
+        "name": "Chevrolet",
+        "parent": 2,
+        "attribute": [
+            {
+                "name": "terms_of_sale",
+                "type": "multiselect",
+                "label": "sotish sharlari",
+                "options": [
+                    "Oddiy sotish",
+                    "Trade-in",
+                    "Kredit",
+                    "Arenda",
+                    "Lizing",
+                    "Almashtirish mumkin",
+                    "Bo'lib to'lash"
+                ],
+                "required": false,
+                "placeholder": null
+            },
+            {
+                "name": "motor_year",
+                "type": "int",
+                "label": "Ishlab chiqarish yili",
+                "options": null,
+                "required": true,
+                "placeholder": null
+            },
+            {
+                "name": "model",
+                "type": "select",
+                "label": "Model",
+                "options": [
+                    "Cobolt",
+                    "Damas",
+                    "Epica"
+                ],
+                "required": true,
+                "placeholder": "Tanlash"
+            },
+            {
+                "name": "car_body",
+                "type": "select",
+                "label": "Kuzov turi",
+                "options": [
+                    "Kabriolet",
+                    "Pikap",
+                    "Kupe",
+                    "Universal",
+                    "Xetchbek",
+                    "Miniver",
+                    "Yo'l tanlamas",
+                    "Sedan",
+                    "Boshqa"
+                ],
+                "required": true,
+                "placeholder": "Tanlash"
+            },
+            {
+                "name": "motor_mileage",
+                "type": "int",
+                "label": "Bosgan yo'li",
+                "options": [
+                    "Kabriolet",
+                    "Pikap",
+                    "Kupe",
+                    "Universal",
+                    "Xetchbek",
+                    "Miniver",
+                    "Yo'l tanlamas",
+                    "Sedan",
+                    "Boshqa"
+                ],
+                "required": false,
+                "placeholder": "km"
+            },
+            {
+                "name": "transmission_type",
+                "type": "select",
+                "label": "Uzatmalar qutusi",
+                "options": [
+                    "Mexanik",
+                    "Avtomatik",
+                    "Boshqa"
+                ],
+                "required": true,
+                "placeholder": "Tanlash"
+            },
+            {
+                "name": "color",
+                "type": "select",
+                "label": "Rang",
+                "options": [
+                    "Oq",
+                    "Qora",
+                    "Kumush rang"
+                ],
+                "required": true,
+                "placeholder": "Tanlash"
+            },
+            {
+                "name": "motor_engine_size",
+                "type": "int",
+                "label": "Dvigetel hajmi",
+                "options": null,
+                "required": true,
+                "placeholder": "cm³"
+            },
+            {
+                "name": "fuel_type",
+                "type": "select",
+                "label": "Yonilg'i turi",
+                "options": [
+                    "Benzin",
+                    "Dizel",
+                    "Gibrid",
+                    "Gaz/Benzin",
+                    "Electro",
+                    "Boshqa"
+                ],
+                "required": true,
+                "placeholder": "Tanlash"
+            },
+            {
+                "name": "condition",
+                "type": "select",
+                "label": "Mashina holati",
+                "options": [
+                    "Idialniy",
+                    "Yaxshi",
+                    "O'rta",
+                    "Ta'mir talab"
+                ],
+                "required": true,
+                "placeholder": "Tanlash"
+            },
+            {
+                "name": "owners",
+                "type": "select",
+                "label": "Mulkdor soni",
+                "options": [
+                    "1",
+                    "2",
+                    "3",
+                    "4+"
+                ],
+                "required": false,
+                "placeholder": "Tanlash"
+            },
+            {
+                "name": "car_option",
+                "type": "multiselect",
+                "label": "Qoshimcha opsiyalar",
+                "options": [
+                    "Bojxonada rasmiylashtirilgan",
+                    "Konditsioner",
+                    "Elektr ko'zgular",
+                    "Oxoronna sistema",
+                    "El. oyna go'targichlar",
+                    "Parktornik"
+                ],
+                "required": false,
+                "placeholder": null
+            }
+        ],
+        "lft": 7,
+        "rght": 8,
+        "tree_id": 3,
         "level": 2
     }
 }
