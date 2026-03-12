@@ -38,7 +38,6 @@ class AnnouncementFilterSet(django_filters.FilterSet):
         self.dynamic_fields = []
         self.dynamic_config = {}
 
-        # стили стандартных полей
         self.filters["q"].field.widget = forms.TextInput(attrs={
             "class": INPUT_CLASS,
             "placeholder": "Что ищете?",
@@ -63,7 +62,6 @@ class AnnouncementFilterSet(django_filters.FilterSet):
             if not field_name or not field_type:
                 continue
 
-            # int -> диапазон от/до
             if field_type == "int":
                 min_name = f"{field_name}_min"
                 max_name = f"{field_name}_max"
@@ -171,18 +169,15 @@ class AnnouncementFilterSet(django_filters.FilterSet):
         if not category:
             return []
 
-        # 1. если у текущей категории есть атрибуты
         if category.attribute:
             return category.attribute
 
-        # 2. ищем у родителей
         parent = category.parent
         while parent:
             if parent.attribute:
                 return parent.attribute
             parent = parent.parent
 
-        # 3. ищем у потомков
         for child in category.get_descendants():
             if child.attribute:
                 return child.attribute

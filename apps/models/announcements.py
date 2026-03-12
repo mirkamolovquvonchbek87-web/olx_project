@@ -31,3 +31,5 @@ class Announcement(SlugBaseModel, CreatedBaseModel):
 
 class AnnouncementImage(ImageBaseModel):
     product = ForeignKey('apps.Announcement', CASCADE, related_name='images')
+
+
