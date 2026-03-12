@@ -1,6 +1,6 @@
 from django.urls import path
 from apps.views import AnnouncementListView, MainView, CustomLoginView, GoogleLoginView, GoogleCallbackView, \
-    ProfileUpdateView, CustomLogoutView, AnnouncementCreateView, category_attributes
+    ProfileUpdateView, CustomLogoutView, AnnouncementCreateView, category_attributes, ChatPageView
 
 urlpatterns = [
     path('', MainView.as_view(), name='main_page'),
@@ -19,6 +19,6 @@ urlpatterns = [
 
     path('auth/profile', ProfileUpdateView.as_view(), name='profile_page'),
 
-
+    path("chat/<int:chat_id>/", ChatPageView.as_view(), name="chat_page"),
 
 ]

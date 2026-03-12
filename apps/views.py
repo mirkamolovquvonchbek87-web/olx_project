@@ -7,9 +7,9 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import CreateView, UpdateView
+from django.views.generic import CreateView, UpdateView, DeleteView, DetailView
 from apps.filters import AnnouncementFilterSet
-from apps.models import Announcement, Category, User
+from apps.models import Announcement, Category, User ,Chat
 from django.views.generic import ListView
 from apps.models.announcements import ProductImage
 from root import settings
@@ -163,3 +163,11 @@ def category_attributes(request, slug):
     return JsonResponse(cat.attribute or [], safe=False)
 
 
+
+
+
+class ChatPageView(DetailView):
+    model = Chat
+    template_name = 'apps/chat.html'
+    context_object_name = "chat"
+    pk_url_kwarg = "chat_id"

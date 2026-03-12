@@ -4,17 +4,17 @@ from mptt.fields import TreeForeignKey
 from mptt.models import MPTTModel
 from apps.models.base import ImageBaseModel, SlugBaseModel, CreatedBaseModel
 
-
-class Category(SlugBaseModel, ImageBaseModel, MPTTModel):
-    name = CharField(max_length=255)
-    parent = TreeForeignKey('self', CASCADE, null=True, blank=True, related_name='children')
-    attribute = JSONField(blank=True, null=True)
-
-    def __str__(self):
-        return self.name
-
-    class MPTTMeta:
-        order_insertion_by = ['name']
+#
+# class Category(SlugBaseModel, ImageBaseModel, MPTTModel):
+#     name = CharField(max_length=255)
+#     parent = TreeForeignKey('self', CASCADE, null=True, blank=True, related_name='children')
+#     attribute = JSONField(blank=True, null=True)
+#
+#     def __str__(self):
+#         return self.name
+#
+#     class MPTTMeta:
+#         order_insertion_by = ['name']
 
 
 

@@ -1,0 +1,216 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Chat</title>
+
+<style>
+
+body{
+font-family: Arial;
+margin:0;
+background:#f2f4f5;
+}
+
+.chat-container{
+display:flex;
+height:100vh;
+}
+
+/* LEFT CHAT LIST */
+
+.chat-list{
+width:320px;
+background:white;
+border-right:1px solid #ddd;
+overflow-y:auto;
+}
+
+.chat-item{
+padding:15px;
+border-bottom:1px solid #eee;
+cursor:pointer;
+}
+
+.chat-item:hover{
+background:#f5f5f5;
+}
+
+/* RIGHT CHAT */
+
+.chat-box{
+flex:1;
+display:flex;
+flex-direction:column;
+}
+
+.chat-header{
+padding:15px;
+background:white;
+border-bottom:1px solid #ddd;
+}
+
+.messages{
+flex:1;
+padding:20px;
+overflow-y:auto;
+}
+
+.message{
+margin:10px 0;
+max-width:60%;
+padding:10px;
+border-radius:8px;
+}
+
+.me{
+background:#d4ecff;
+margin-left:auto;
+}
+
+.other{
+background:#eee;
+}
+
+/* INPUT */
+
+.chat-input{
+display:flex;
+padding:15px;
+background:white;
+border-top:1px solid #ddd;
+}
+
+.chat-input input{
+flex:1;
+padding:10px;
+border:1px solid #ddd;
+border-radius:5px;
+}
+
+.chat-input button{
+margin-left:10px;
+background:#002f34;
+color:white;
+border:none;
+padding:10px 20px;
+border-radius:5px;
+cursor:pointer;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="chat-container">
+
+<!-- LEFT -->
+<div class="chat-list">
+
+<div class="chat-item">
+User 1
+</div>
+
+<div class="chat-item">
+User 2
+</div>
+
+</div>
+
+
+<!-- RIGHT -->
+
+<div class="chat-box">
+
+<div class="chat-header">
+Chat
+</div>
+
+<div class="messages" id="messages">
+
+</div>
+
+<div class="chat-input">
+
+<input id="messageInput" placeholder="Xabar yozing...">
+
+<input type="file" id="fileInput">
+
+<button onclick="sendMessage()">Send</button>
+
+</div>
+
+</div>
+
+</div>
+
+<script>
+
+const chatId = "{{chat.id}}";
+
+const socket = new WebSocket(
+"ws://" + window.location.host + "/ws/chat/" + chatId + "/"
+);
+
+socket.onmessage = function(e){
+
+const data = JSON.parse(e.data);
+
+const messages = document.getElementById("messages");
+
+const div = document.createElement("div");
+
+div.className = "message other";
+
+div.innerHTML = data.message;
+
+messages.appendChild(div);
+
+messages.scrollTop = messages.scrollHeight;
+
+};
+
+function sendMessage(){
+
+const input = document.getElementById("messageInput");
+
+const fileInput = document.getElementById("fileInput");
+
+const message = input.value;
+
+if(fileInput.files.length > 0){
+
+const file = fileInput.files[0];
+
+const reader = new FileReader();
+
+reader.onload = function(){
+
+socket.send(JSON.stringify({
+message: message,
+file: reader.result,
+filename: file.name
+}));
+
+}
+
+reader.readAsDataURL(file);
+
+}else{
+
+socket.send(JSON.stringify({
+message: message
+}));
+
+}
+
+input.value = "";
+
+}
+
+</script>
+
+</body>
+</html>

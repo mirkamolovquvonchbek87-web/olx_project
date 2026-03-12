@@ -16,6 +16,8 @@ ALLOWED_HOSTS = ['*']
 
 
 INSTALLED_APPS = [
+    "daphne",
+    "channels",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -27,6 +29,8 @@ INSTALLED_APPS = [
     'mptt',
     'django_filters',
     "django_json_widget",
+
+
 ]
 
 MIDDLEWARE = [
@@ -58,7 +62,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'root.wsgi.application'
+
+ASGI_APPLICATION = "root.asgi.application"
 
 
 DATABASES = {
