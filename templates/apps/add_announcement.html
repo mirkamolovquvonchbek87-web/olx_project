@@ -353,7 +353,7 @@
         </div>
     </div>
 </header>
-<form method="post" enctype="multipart/form-data">
+<form method="post" action="{% url 'add_announcement_page' %}" enctype="multipart/form-data">
     {% csrf_token %}
     <div class="wrap">
 
@@ -452,13 +452,12 @@
                 Первое фото будет на обложке объявления. Максимум 8 фото.
             </p>
 
-            <!-- picker: выбираем файлы -->
-            <input id="filePicker" type="file" accept="image/*" multiple class="hidden"/>
 
-            <!-- настоящий input, который отправится в Django -->
-            <input id="imagesInput" type="file" name="images" accept="image/*" multiple class="hidden"/>
-            <!-- grid -->
-            <div id="photosGrid" class="grid grid-cols-4 gap-4">
+<input id="imagesInput" type="file" name="images" accept="image/*" multiple class="hidden"/>
+<!-- picker (не отправляется) -->
+<input id="filePicker" type="file" accept="image/*" multiple class="hidden"/>
+
+<!-- input для отправки в Django -->        <div id="photosGrid" class="grid grid-cols-4 gap-4">
                 <!-- add tile -->
                 <button type="button" id="addPhotoBtn" class="tile tile-add">
                     <span class="underline text-[18px] font-bold">Добавить фото</span>
@@ -997,27 +996,47 @@ filePicker.addEventListener("change", () => {
   const newFiles = Array.from(filePicker.files || []);
   if (!newFiles.length) return;
 
-  filesState = filesState.concat(newFiles);
-
-  if (filesState.length > MAX_IMAGES) {
-    alert(`Можно загрузить максимум ${MAX_IMAGES} фото.`);
-    filesState = filesState.slice(0, MAX_IMAGES);
-  }
-
-  syncInputFiles();   // копируем filesState -> imagesInput.files
+  filesState = filesState.concat(newFiles).slice(0, MAX_IMAGES);
+  syncInputFiles();
   renderPreviews();
 
-  // очищаем ТОЛЬКО picker, чтобы можно было выбрать те же файлы повторно
-  filePicker.value = "";
 });
 
-function syncInputFiles(){
+function syncInputFiles() {
   const dt = new DataTransfer();
   filesState.forEach(f => dt.items.add(f));
   imagesInput.files = dt.files;
 }
 
+function renderPreviews() {
+  [...photosGrid.querySelectorAll("[data-preview]")].forEach(n => n.remove());
 
+  filesState.forEach((file, idx) => {
+    const tile = document.createElement("div");
+    tile.className = "tile relative overflow-hidden";
+    tile.dataset.preview = "1";
+
+    const img = document.createElement("img");
+    img.className = "w-full h-full object-cover";
+    img.src = URL.createObjectURL(file);
+
+    const del = document.createElement("button");
+    del.type = "button";
+    del.className = "absolute top-2 right-2 bg-white/90 rounded px-2 py-1 text-sm font-bold";
+    del.textContent = "×";
+    del.onclick = () => {
+      filesState.splice(idx, 1);
+      syncInputFiles();
+      renderPreviews();
+    };
+
+    tile.appendChild(img);
+    tile.appendChild(del);
+    photosGrid.insertBefore(tile, addPhotoBtn);
+  });
+
+  photoCounter.textContent = `${filesState.length}/${MAX_IMAGES}`;
+}
 </script>
 </body>
 </html>

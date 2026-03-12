@@ -1,3 +1,7 @@
+{% load form_extras %}
+
+
+
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -140,7 +144,7 @@
                         </div>
 
                         <div class="flex items-center">
-    <a {% if user.is_authenticated %} href="{% url 'login_page' %}" {% else %} href="{% url 'profile_page' %}" {% endif %}
+    <a {% if user.is_authenticated %} href="{% url 'profile_page' %}" {% else %} href="{% url 'login_page' %}" {% endif %}
        class="flex items-center gap-2 font-semibold text-sm transition-colors hover:text-cyan-400">
         <i class="fa-regular fa-user text-xl"></i>
         <span class="hidden md:inline">Профиль</span>
@@ -149,7 +153,7 @@
 </div>
 
                         <button type="button" class="bg-white text-[#002f34] px-4 py-2 rounded font-bold hover:bg-gray-100 transition text-sm">
-                            <a href="{%   url "add_page" %}" >Подать объявление</a>
+                            <a href="{%   url "add_announcement_page" %}" >Подать объявление</a>
 </button>
 
 
@@ -173,6 +177,24 @@
                 <i class="fa-regular fa-heart mr-2"></i> Добавить в избранное
             </button>
         </div>
+    <form method="get" class="mb-6">
+  <div class="flex gap-2">
+    <input
+      type="text"
+      name="q"
+      value="{{ search_value }}"
+      placeholder="Что ищете?"
+      class="w-full border border-gray-300 rounded px-4 py-2"
+    >
+    <button
+      type="submit"
+      class="bg-[#002f34] text-white px-6 py-2 rounded font-bold"
+    >
+      Поиск
+    </button>
+  </div>
+
+
 
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
 
@@ -210,34 +232,40 @@
                     {% endfor %}
                 </ul>
             </div>
-        <form method="GET" >
+
            <div>
                 <label class="text-xs text-gray-500 uppercase font-bold">Цена</label>
-                <div class="flex flex-col gap-1">
-
-                    <input type="number"
-                           name="min_price"
-                           value="{{ request.GET.min_price }}"
-                           placeholder="От:"
-                           class="filter-select border-b-gray-300">
-
-                    <input type="number"
-                           name="max_price"
-                           value="{{ request.GET.max_price }}"
-                           placeholder="До:"
-                           class="filter-select border-b-gray-300">
-
-
+                <div class="flex gap-2">
+                    {{ filter.form.min_price }}
+                    {{ filter.form.max_price }}
                 </div>
             </div>
 
-            <div class="flex items-end">
-                <button type="submit" class="w-full bg-[#002f34] text-white p-3 rounded font-bold hover:bg-[#004f56] transition">
-                    Применить
-                </button>
-            </div>
-            </form>
+            {% for item in dynamic_fields %}
+                {% if item.type == "range" %}
+                    <div>
+                        <label class="text-xs text-gray-500 uppercase font-bold">{{ item.label }}</label>
+                        <div class="flex gap-2">
+                            {{ filter.form|get_field:item.min_name }}
+                            {{ filter.form|get_field:item.max_name }}
+                        </div>
+                    </div>
+                {% else %}
+                    <div>
+                        <label class="text-xs text-gray-500 uppercase font-bold">{{ item.label }}</label>
+                        {{ filter.form|get_field:item.name }}
+                    </div>
+                {% endif %}
+            {% endfor %}
         </div>
+        <div class="flex items-end">
+            <button type="submit"
+                    class="bg-[#002f34] text-white px-6 py-3 rounded font-bold hover:bg-[#004f56] transition">
+                Применить
+            </button>
+        </div>
+            </form>
+
 
             <br>
             <div>
@@ -269,6 +297,12 @@
         </div>
     </section>
 
+
+
+
+
+
+
     <div class="flex flex-wrap gap-4 mb-8 text-sm text-[#002f34]">
         {% for brand in manufacturers %}
             <a href="#" class="font-semibold hover:underline">{{ brand.name }} <span class="text-gray-400 font-normal">1 234</span></a>
@@ -291,7 +325,7 @@
                     <div>
                         <div class="flex justify-between items-start">
                             <h4 class="text-lg text-[#002f34] leading-tight group-hover:text-cyan-600 cursor-pointer">
-                                {{ announcement.title }}
+                                {{ announcement.name }}
                             </h4>
                             <i class="fa-regular fa-heart text-xl cursor-pointer hover:text-red-500"></i>
                         </div>

@@ -12,6 +12,7 @@ class User(AbstractUser):
     balance = IntegerField(default=0)
     bonus = IntegerField(default=0)
 
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 

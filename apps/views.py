@@ -3,17 +3,17 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 import requests
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.db.models import Q
+from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, UpdateView
 from apps.filters import AnnouncementFilterSet
+from apps.forms import AnnouncementModelForm, RegisterModelForm, EmailLoginForm
 from apps.models import Announcement, Category, User
 from django.views.generic import ListView
-from apps.models.announcements import ProductImage
+from apps.models.announcements import AnnouncementImage
 from root import settings
-import json
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 
@@ -27,38 +27,81 @@ class MainView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['announcements'] = Announcement.objects.filter(product_type="vip")
+
+        announcements = Announcement.objects.filter(
+            product_type=Announcement.AnnouncementType.VIP
+        )
+
+        q = self.request.GET.get("q")
+        if q:
+            announcements = announcements.filter(
+                Q(name__icontains=q) |
+                Q(description__icontains=q)
+            ).distinct()
+
+        context['announcements'] = announcements
+        context['search_value'] = q or ""
         return context
 
 
+class AnnouncementSearchView(ListView):
+    template_name = "apps/announcement-list.html"
+    context_object_name = "announcements"
+
+    def get_queryset(self):
+        queryset = Announcement.objects.all()
+        self.filterset = AnnouncementFilterSet(self.request.GET, queryset=queryset, category=None)
+        return self.filterset.qs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["filter"] = self.filterset
+        context["dynamic_fields"] = self.filterset.dynamic_fields
+        context["top_categories"] = Category.objects.filter(parent=None)
+        context["current_category"] = None
+        context["search_value"] = self.request.GET.get("q", "")
+        return context
+
+
+
+
 class AnnouncementListView(ListView):
-    template_name = 'apps/announcement-list.html'
-    context_object_name = 'announcements'
+    template_name = "apps/announcement-list.html"
+    context_object_name = "announcements"
+
 
     def get_queryset(self):
         slug = self.kwargs.get("slug")
         self.category = get_object_or_404(Category, slug=slug)
         categories = self.category.get_descendants(include_self=True)
+
         queryset = Announcement.objects.filter(category__in=categories)
-        self.filterset = AnnouncementFilterSet(self.request.GET, queryset=queryset)
+        self.filterset = AnnouncementFilterSet(
+            self.request.GET,
+            queryset=queryset,
+            category=self.category
+        )
         return self.filterset.qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['filter'] = self.filterset
-        context['top_categories'] = Category.objects.filter(parent=None)
+        context["filter"] = self.filterset
+        context["dynamic_fields"] = self.filterset.dynamic_fields
+        context["top_categories"] = Category.objects.filter(parent=None)
+        context["current_category"] = self.category
+        context["search_value"] = self.request.GET.get("q", "")
         return context
 
-
 class CustomLoginView(LoginView):
-    template_name = 'apps/login.html'
-    success_url = reverse_lazy('main_page')
+    template_name = 'apps/auth/login.html'
+    authentication_form = EmailLoginForm
+    success_url = reverse_lazy('profile_page')
     redirect_authenticated_user = True
 
-# class RegisterCreateView(CreateView):
-#     template_name = 'apps/auth/register.html'
-#     form_class = RegisterModelForm
-#     success_url = reverse_lazy('login_page')
+class RegisterCreateView(CreateView):
+    template_name = 'apps/auth/register.html'
+    form_class = RegisterModelForm
+    success_url = reverse_lazy('login_page')
 
 
 class GoogleLoginView(View):
@@ -113,7 +156,7 @@ class GoogleCallbackView(View):
 
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     queryset = User.objects.all()
-    template_name = 'apps/profile.html'
+    template_name = 'apps/auth/profile.html'
     fields = ['first_name', 'last_name']
     success_url = reverse_lazy('profile_page')
 
@@ -129,8 +172,8 @@ class CustomLogoutView(View):
 
 class AnnouncementCreateView(LoginRequiredMixin, CreateView):
     model = Announcement
-    template_name = 'apps/add.html'
-    fields = ['name', 'description', 'category', 'price']
+    template_name = 'apps/add_announcement.html'
+    form_class = AnnouncementModelForm
     success_url = reverse_lazy('profile_page')
 
     def get_context_data(self, **kwargs):
@@ -139,23 +182,19 @@ class AnnouncementCreateView(LoginRequiredMixin, CreateView):
         return context
 
     def form_valid(self, form):
-        form.instance.seller_type = self.request.POST.get("seller_type", "private")
 
-        raw_attr = self.request.POST.get("attribute", "{}")
-        try:
-            form.instance.attribute = json.loads(raw_attr)
-        except Exception:
-            form.instance.attribute = {}
+        form.instance.user = self.request.user
 
-        resp = super().form_valid(form)
+        response = super().form_valid(form)
 
         images = self.request.FILES.getlist("images")
-
         for img in images:
-            ProductImage.objects.create(product=self.object, image=img)
+            AnnouncementImage.objects.create(
+                product=self.object,
+                image=img
+            )
 
-        return resp
-
+        return response
 
 
 def category_attributes(request, slug):

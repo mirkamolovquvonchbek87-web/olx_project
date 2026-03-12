@@ -65,7 +65,7 @@
         </div>
 
         <button class="bg-white text-[#002f34] px-4 py-2 rounded font-bold hover:bg-gray-100 transition text-sm">
-           <a href="{%   url "add_page" %}" >Подать объявление</a>
+           <a href="{%   url "add_announcement_page" %}" >Подать объявление</a>
         </button>
 
         {% if user.is_authenticated %}
@@ -79,23 +79,43 @@
   </header>
 
   <!-- SEARCH -->
-  <div class="bg-white border-b border-gray-200 py-8">
-    <div class="max-w-6xl mx-auto px-4">
-      <div class="flex flex-col md:flex-row gap-0.5 shadow-sm rounded border border-gray-200 overflow-hidden">
-        <div class="flex-1 bg-white p-4 flex items-center gap-3">
-          <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
-          <input type="text" placeholder="Что ищете?" class="w-full outline-none text-sm" />
-        </div>
-        <div class="flex-1 bg-white p-4 flex items-center gap-3 border-t md:border-t-0 md:border-l border-gray-100">
-          <i class="fa-solid fa-location-dot text-gray-400"></i>
-          <input type="text" placeholder="Вся страна" class="w-full outline-none text-sm" />
-        </div>
-        <button class="bg-[#002f34] text-white px-10 py-4 font-bold hover:bg-[#004d55] transition text-sm">
-          Поиск
-        </button>
+
+
+  <!-- SEARCH -->
+<div class="bg-white border-b border-gray-200 py-8">
+  <div class="max-w-6xl mx-auto px-4">
+    <form method="get" action="{% url 'announcement_search_page' %}"
+          class="flex flex-col md:flex-row gap-0.5 shadow-sm rounded border border-gray-200 overflow-hidden">
+      <div class="flex-1 bg-white p-4 flex items-center gap-3">
+        <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
+        <input
+          type="text"
+          name="q"
+          value="{{ search_value }}"
+          placeholder="Что ищете?"
+          class="w-full outline-none text-sm"
+        />
       </div>
-    </div>
+
+      <div class="flex-1 bg-white p-4 flex items-center gap-3 border-t md:border-t-0 md:border-l border-gray-100">
+        <i class="fa-solid fa-location-dot text-gray-400"></i>
+        <input
+          type="text"
+          placeholder="Вся страна"
+          class="w-full outline-none text-sm"
+        />
+      </div>
+
+      <button
+        type="submit"
+        class="bg-[#002f34] text-white px-10 py-4 font-bold hover:bg-[#004d55] transition text-sm"
+      >
+        Поиск
+      </button>
+    </form>
   </div>
+</div>
+
 
   <!-- MAIN -->
   <main class="max-w-6xl mx-auto px-4 py-12">

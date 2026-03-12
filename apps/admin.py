@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.db.models import JSONField
 from django_json_widget.widgets import JSONEditorWidget
 from apps.models import Category, Announcement
+from apps.models.announcements import AnnouncementImage
 
 
 # Register your models here.
@@ -15,6 +16,11 @@ class CategoryModelAdmin(ModelAdmin):
 
 @admin.register(Announcement)
 class AnnouncementModelAdmin(ModelAdmin):
+    pass
+
+
+@admin.register(AnnouncementImage)
+class AnnouncementImagesModelAdmin(ModelAdmin):
     pass
 
 

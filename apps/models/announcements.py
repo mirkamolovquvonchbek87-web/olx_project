@@ -1,20 +1,7 @@
-from django.db.models import CharField, CASCADE, ManyToManyField, ForeignKey, JSONField, TextChoices, Model, ImageField
+from django.db.models import CharField, CASCADE, ForeignKey, JSONField, TextChoices
 from django.db.models.fields import PositiveIntegerField, PositiveSmallIntegerField, TextField
-from mptt.fields import TreeForeignKey
-from mptt.models import MPTTModel
 from apps.models.base import ImageBaseModel, SlugBaseModel, CreatedBaseModel
 
-
-class Category(SlugBaseModel, ImageBaseModel, MPTTModel):
-    name = CharField(max_length=255)
-    parent = TreeForeignKey('self', CASCADE, null=True, blank=True, related_name='children')
-    attribute = JSONField(blank=True, null=True)
-
-    def __str__(self):
-        return self.name
-
-    class MPTTMeta:
-        order_insertion_by = ['name']
 
 
 
@@ -29,22 +16,18 @@ class Announcement(SlugBaseModel, CreatedBaseModel):
 
     name = CharField(max_length=255)
     price = PositiveIntegerField()
-    discount = PositiveSmallIntegerField(db_default=0)
     description = TextField(blank=True)
-    category = ForeignKey('apps.Category', CASCADE, related_name='products')
+    category = ForeignKey('apps.Category', CASCADE, related_name='announcements')
     product_type = CharField(max_length=10, choices=AnnouncementType.choices, default=AnnouncementType.SIMPLE)
     attribute = JSONField(blank=True, null=True)
     seller_type = CharField(max_length=10,choices=SellerTypeChoices.choices, default=SellerTypeChoices.PRIVATE)
+    user = ForeignKey("apps.User", CASCADE, related_name='announcements')
 
     @property
     def first_image(self):
-        return self.favorites.count()
-        # img = self.images.first()
-        # if img:
-        #     return img.image.url
-        # return None
+        img = self.images.first()
+        return img.image.url if img else "/static/img/no-photo.png"
 
 
-class ProductImage(ImageBaseModel):
-    image = ImageField(upload_to='products/%Y/%m/%d')
+class AnnouncementImage(ImageBaseModel):
     product = ForeignKey('apps.Announcement', CASCADE, related_name='images')
