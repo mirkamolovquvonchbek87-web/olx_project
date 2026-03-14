@@ -1,216 +1,385 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="ru">
+
 <head>
-<meta charset="UTF-8">
-<title>Chat</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Чат с {{ other_user.first_name|default:other_user.email }} - OLX</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #f2f4f5;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
 
-<style>
+        /* Hide scrollbar for clean chat list */
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
 
-body{
-font-family: Arial;
-margin:0;
-background:#f2f4f5;
-}
-
-.chat-container{
-display:flex;
-height:100vh;
-}
-
-/* LEFT CHAT LIST */
-
-.chat-list{
-width:320px;
-background:white;
-border-right:1px solid #ddd;
-overflow-y:auto;
-}
-
-.chat-item{
-padding:15px;
-border-bottom:1px solid #eee;
-cursor:pointer;
-}
-
-.chat-item:hover{
-background:#f5f5f5;
-}
-
-/* RIGHT CHAT */
-
-.chat-box{
-flex:1;
-display:flex;
-flex-direction:column;
-}
-
-.chat-header{
-padding:15px;
-background:white;
-border-bottom:1px solid #ddd;
-}
-
-.messages{
-flex:1;
-padding:20px;
-overflow-y:auto;
-}
-
-.message{
-margin:10px 0;
-max-width:60%;
-padding:10px;
-border-radius:8px;
-}
-
-.me{
-background:#d4ecff;
-margin-left:auto;
-}
-
-.other{
-background:#eee;
-}
-
-/* INPUT */
-
-.chat-input{
-display:flex;
-padding:15px;
-background:white;
-border-top:1px solid #ddd;
-}
-
-.chat-input input{
-flex:1;
-padding:10px;
-border:1px solid #ddd;
-border-radius:5px;
-}
-
-.chat-input button{
-margin-left:10px;
-background:#002f34;
-color:white;
-border:none;
-padding:10px 20px;
-border-radius:5px;
-cursor:pointer;
-}
-
-</style>
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
 </head>
 
-<body>
+<body class="flex flex-col h-screen max-h-screen overflow-hidden">
 
-<div class="chat-container">
+    <!-- HEADER -->
+    <header class="bg-[#002f34] text-white flex-shrink-0 z-10">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-8">
+                <div class="text-3xl font-black tracking-tighter cursor-pointer">
+                    <a href="{% url 'main_page' %}">OLX</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-4 md:gap-6">
+                <a href="{% url 'user_chats_page' %}"
+                    class="flex items-center gap-2 cursor-pointer hover:text-cyan-400">
+                    <i class="fa-regular fa-comment text-xl"></i>
+                    <span class="hidden lg:inline font-semibold text-sm">Чат</span>
+                </a>
+                <div class="flex items-center cursor-pointer hover:text-cyan-400">
+                    <i class="fa-regular fa-heart text-xl"></i>
+                </div>
+                <div class="flex items-center cursor-pointer hover:text-cyan-400">
+                    <a href="{% url 'profile_page' %}"
+                        class="flex items-center gap-2 font-semibold text-sm transition-colors hover:text-cyan-400">
+                        <i class="fa-regular fa-user text-xl"></i>
+                        <span class="hidden md:inline">Профиль</span>
+                    </a>
+                </div>
+                <button
+                    class="bg-white text-[#002f34] px-4 py-2 rounded font-bold hover:bg-gray-100 transition text-sm">
+                    <a href="{% url 'add_announcement_page' %}">Подать объявление</a>
+                </button>
+            </div>
+        </div>
+    </header>
 
-<!-- LEFT -->
-<div class="chat-list">
+    <!-- SUB-HEADER (Navigation) -->
+    <nav class="bg-white border-b border-gray-200 flex-shrink-0 hidden md:block z-10">
+        <div class="max-w-6xl mx-auto px-4 flex gap-6 text-[13px] font-semibold text-gray-500 overflow-x-auto">
+            <a href="#" class="py-4 hover:text-[#002f34]">Объявления</a>
+            <a href="#" class="py-4 hover:text-[#002f34]">Панель Работодателя</a>
+            <a href="#" class="py-4 border-b-2 border-[#002f34] text-[#002f34]">Чат</a>
+            <a href="#" class="py-4 hover:text-[#002f34]">Платежи и счет OLX</a>
+            <a href="#" class="py-4 hover:text-[#002f34]">Ищу работу</a>
+            <a href="#" class="py-4 hover:text-[#002f34]">Настройки</a>
+            <a href="#" class="py-4 hover:text-[#002f34]">Мой бизнес</a>
+        </div>
+    </nav>
 
-<div class="chat-item">
-User 1
-</div>
+    <!-- MAIN LAYOUT -->
+    <main class="flex-1 w-full max-w-6xl mx-auto flex bg-[#f2f4f5] overflow-hidden pt-6 pb-6 px-4">
 
-<div class="chat-item">
-User 2
-</div>
+        <!-- LEFT SIDEBAR -->
+        <aside class="w-full md:w-[350px] flex flex-col mr-6 bg-transparent h-full hidden md:flex">
 
-</div>
+            <!-- Top controls -->
+            <div class="bg-white rounded shadow-sm mb-4">
+                <div class="flex justify-around py-3 border-b border-gray-100 text-[13px] font-semibold text-[#002f34]">
+                    <a href="#" class="flex items-center gap-2 hover:text-cyan-600"><i
+                            class="fa-regular fa-bookmark"></i> Сохраненные</a>
+                    <a href="#" class="flex items-center gap-2 hover:text-cyan-600"><i
+                            class="fa-regular fa-trash-can"></i> Корзина</a>
+                </div>
+            </div>
 
+            <div class="bg-white rounded shadow-sm flex-1 flex flex-col overflow-hidden">
 
-<!-- RIGHT -->
+                <!-- Promo Banner -->
+                <div class="m-4 bg-[#e8f0fe] rounded p-4 text-center cursor-pointer hover:bg-[#dbe6fd] transition">
+                    <div class="flex items-center justify-center gap-2 mb-2 text-[#4285f4]">
+                        <i class="fa-solid fa-briefcase text-xl"></i>
+                    </div>
+                    <p class="text-sm font-bold text-[#002f34] leading-tight mb-2">Ищете сообщения от кандидатов о ваших
+                        вакансиях?</p>
+                    <p class="text-xs text-[#002f34] font-bold underline">Перейти в Панель работодателя</p>
+                </div>
 
-<div class="chat-box">
+                <!-- Tabs -->
+                <div class="px-4 pb-4 flex gap-2">
+                    <button
+                        class="flex-1 bg-white border border-gray-200 text-gray-500 font-bold py-2 rounded text-xs hover:bg-gray-50 transition">Покупаю</button>
+                    <button
+                        class="flex-1 bg-[#13d0a1] text-white font-bold py-2 rounded text-xs hover:bg-[#10b88f] transition shadow-sm">Продаю</button>
+                </div>
 
-<div class="chat-header">
-Chat
-</div>
+                <!-- Scrollable Chats List -->
+                <div class="flex-1 overflow-y-auto scrollbar-hide border-t border-gray-100">
 
-<div class="messages" id="messages">
+                    <!-- Image Placeholder for "НЕПРОЧИТАННЫЕ" missing since we don't have exactly the same, but we show the header -->
+                    <div
+                        class="px-4 py-3 text-[10px] font-bold text-[#002f34] uppercase tracking-wider bg-gray-50 border-b border-gray-100">
+                        Чаты</div>
 
-</div>
+                    {% if not chats %}
+                    <div class="p-8 flex flex-col items-center justify-center text-center">
+                        <p class="text-sm text-gray-500 font-semibold mb-2">Нет сообщений</p>
+                    </div>
+                    {% else %}
+                    <div class="divide-y divide-gray-100">
+                        {% for chat_item in chats %}
+                        {% if chat_item.user1 == request.user %}
+                        {% with other_user_item=chat_item.user2 %}
+                        <div class="{% if chat_item.id == chat.id %}bg-blue-50{% endif %}">
+                            {% include "apps/includes/chat_item.html" with chat=chat_item other_user=other_user_item %}
+                        </div>
+                        {% endwith %}
+                        {% else %}
+                        {% with other_user_item=chat_item.user1 %}
+                        <div class="{% if chat_item.id == chat.id %}bg-blue-50{% endif %}">
+                            {% include "apps/includes/chat_item.html" with chat=chat_item other_user=other_user_item %}
+                        </div>
+                        {% endwith %}
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </aside>
 
-<div class="chat-input">
+        <!-- RIGHT MAIN AREA: ACTUAL CHAT INTERFACE -->
+        <section
+            class="flex-1 bg-white rounded shadow-sm flex flex-col h-full border border-gray-100 overflow-hidden relative">
 
-<input id="messageInput" placeholder="Xabar yozing...">
+            <!-- Chat Header -->
+            <div class="h-16 border-b border-gray-100 flex items-center px-6 justify-between flex-shrink-0">
+                <div class="flex items-center gap-3">
+                    <a href="{% url 'user_chats_page' %}" class="md:hidden text-gray-500 mr-2"><i
+                            class="fa-solid fa-arrow-left"></i></a>
+                    <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
+                        <i class="fa-solid fa-user text-gray-400"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-[#002f34] text-sm">
+                            {% if other_user.first_name %}
+                            {{ other_user.first_name }}
+                            {% else %}
+                            {{ other_user.email }}
+                            {% endif %}
+                        </h3>
 
-<input type="file" id="fileInput">
+                        {% if chat.announcement %}
+                        <p class="text-xs text-gray-500 truncate max-w-[200px]">
+                            {{ chat.announcement.name }}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="flex gap-4 text-gray-400 text-lg">
+                    <i class="fa-regular fa-bookmark hover:text-[#002f34] cursor-pointer"></i>
+                    <i class="fa-solid fa-ban hover:text-[#002f34] cursor-pointer"></i>
+                    <i class="fa-regular fa-flag hover:text-[#002f34] cursor-pointer"></i>
+                    <i class="fa-regular fa-trash-can hover:text-[#002f34] cursor-pointer"></i>
+                </div>
+            </div>
 
-<button onclick="sendMessage()">Send</button>
+            <!-- Messages Area (Scrollable, telegram style) -->
+            <div id="messagesList" class="flex-1 overflow-y-auto p-6 flex flex-col gap-4 bg-[#fcfcfc]">
 
-</div>
+                <div class="flex justify-center my-2">
+                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-transparent px-2">
+                        {% if has_messages %}
+                        История сообщений
+                        {% else %}
+                        Начало переписки
+                        {% endif %}
+                    </span>
+                </div>
 
-</div>
+                {% for msg in messages reversed %}
 
-</div>
+                <div class="flex {% if msg.from_user == request.user %}justify-end{% else %}justify-start{% endif %}">
 
-<script>
+                    <div class="max-w-[75%] md:max-w-[60%]
+                    {% if msg.from_user == request.user %}
+                        bg-[#d4ecff] text-[#002f34]
+                    {% else %}
+                        bg-gray-100 text-[#002f34]
+                    {% endif %}
+                    rounded-lg px-4 py-2 relative group shadow-sm">
 
-const chatId = "{{chat.id}}";
+                        {% if msg.file %}
 
-const socket = new WebSocket(
-"ws://" + window.location.host + "/ws/chat/" + chatId + "/"
-);
+                        {% if msg.is_image %}
+                        <img src="{{ msg.file.url }}" class="max-w-full rounded mb-2">
+                        {% else %}
+                        <a href="{{ msg.file.url }}" download
+                            class="flex items-center gap-2 bg-white p-2 text-sm text-blue-500 rounded mb-2 shadow-sm hover:bg-gray-50">
+                            <i class="fa-solid fa-file"></i>
+                            <span>Download file</span>
+                        </a>
+                        {% endif %}
 
-socket.onmessage = function(e){
+                        {% endif %}
 
-const data = JSON.parse(e.data);
+                        {% if msg.message %}
+                        <p class="text-[14px] leading-relaxed break-words">
+                            {{ msg.message }}
+                        </p>
+                        {% endif %}
 
-const messages = document.getElementById("messages");
+                        <div class="text-[10px] text-right mt-1 opacity-60 flex items-center justify-end gap-1">
+                            {{ msg.created_at|date:"H:i" }}
+                            {% if msg.from_user == request.user %}
+                            <i class="fa-solid fa-check{% if msg.is_read %}-double text-blue-500{% endif %}"></i>
+                            {% endif %}
+                        </div>
 
-const div = document.createElement("div");
+                    </div>
 
-div.className = "message other";
+                </div>
 
-div.innerHTML = data.message;
+                {% endfor %}
+            </div>
 
-messages.appendChild(div);
+            <!-- Input Area -->
+            <div class="p-4 border-t border-gray-100 bg-white flex-shrink-0">
+                <div id="filePreview"
+                    class="hidden mb-3 flex items-center gap-2 text-xs text-blue-800 bg-blue-50 py-2 px-3 rounded w-max border border-blue-100">
+                    <i class="fa-solid fa-file"></i> <span id="fileName"
+                        class="font-semibold truncate max-w-[150px]"></span>
+                    <i class="fa-solid fa-xmark cursor-pointer ml-2 hover:text-red-500 text-base"
+                        onclick="clearFile()"></i>
+                </div>
+                <div class="flex gap-3 items-end">
+                    <label
+                        class="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-[#002f34] hover:bg-gray-100 rounded-full cursor-pointer transition flex-shrink-0">
+                        <i class="fa-solid fa-paperclip text-xl"></i>
+                        <input type="file" id="fileInput" class="hidden">
+                    </label>
 
-messages.scrollTop = messages.scrollHeight;
+                    <div
+                        class="flex-1 bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden flex flex-col focus-within:border-gray-400 focus-within:bg-white transition-colors">
+                        <textarea id="messageInput" rows="1" placeholder="Напишите сообщение..."
+                            class="w-full text-[15px] p-3 outline-none resize-none bg-transparent"
+                            style="min-height: 44px; max-height: 120px; overflow-y: auto;"></textarea>
+                    </div>
 
-};
+                    <button onclick="sendMessage()"
+                        class="bg-[#002f34] text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#004d55] transition flex-shrink-0 shadow-sm">
+                        <i class="fa-solid fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
 
-function sendMessage(){
+        </section>
 
-const input = document.getElementById("messageInput");
+    </main>
 
-const fileInput = document.getElementById("fileInput");
+    <script>
+        const chatId = "{{ chat.id }}";
+        const currentUserId = "{{ request.user.id }}";
 
-const message = input.value;
+        // Auto-resize textarea
+        const tx = document.getElementById("messageInput");
+        tx.addEventListener("input", function () {
+            this.style.height = 0;
+            this.style.height = (this.scrollHeight) + "px";
+        }, false);
 
-if(fileInput.files.length > 0){
+        const messagesList = document.getElementById("messagesList");
+        // Scroll to bottom on load
+        function scrollToBottom() {
+            messagesList.scrollTop = messagesList.scrollHeight;
+        }
+        scrollToBottom();
 
-const file = fileInput.files[0];
+        const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const socket = new WebSocket(protocol + window.location.host + "/ws/chat/" + chatId + "/");
 
-const reader = new FileReader();
+        socket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            const isMe = String(data.user_id) === currentUserId;
 
-reader.onload = function(){
+            const wrapper = document.createElement("div");
+            wrapper.className = "flex " + (isMe ? "justify-end" : "justify-start");
 
-socket.send(JSON.stringify({
-message: message,
-file: reader.result,
-filename: file.name
-}));
+            let fileHtml = "";
+            if (data.file_url) {
+                const ext = data.file_url.split('.').pop().toLowerCase();
+                if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+                    fileHtml = `<img src="${data.file_url}" class="max-w-full rounded mb-2">`;
+                } else {
+                    fileHtml = `<a href="${data.file_url}" target="_blank" class="block bg-white p-2 text-sm text-blue-500 rounded mb-2 shadow-sm"><i class="fa-solid fa-file"></i> Open File</a>`;
+                }
+            }
 
-}
+            let msgHtml = data.message ? `<p class="text-[14px] leading-relaxed break-words">${data.message}</p>` : "";
 
-reader.readAsDataURL(file);
+            wrapper.innerHTML = `
+                <div class="max-w-[75%] md:max-w-[60%] ${isMe ? "bg-[#d4ecff] text-[#002f34]" : "bg-gray-100 text-[#002f34]"} rounded-lg px-4 py-2 relative group shadow-sm mt-4">
+                    ${fileHtml}
+                    ${msgHtml}
+                    <div class="text-[10px] text-right mt-1 opacity-60 flex items-center justify-end gap-1">
+                        ${data.created_at || "Только что"}
+                        ${isMe ? '<i class="fa-solid fa-check text-gray-500"></i>' : ''}
+                    </div>
+                </div>
+            `;
 
-}else{
+            messagesList.appendChild(wrapper);
+            scrollToBottom();
+        };
 
-socket.send(JSON.stringify({
-message: message
-}));
+        const fileInput = document.getElementById("fileInput");
+        const filePreview = document.getElementById("filePreview");
+        const fileName = document.getElementById("fileName");
 
-}
+        fileInput.addEventListener('change', function () {
+            if (this.files.length > 0) {
+                fileName.textContent = this.files[0].name;
+                filePreview.classList.remove("hidden");
+            } else {
+                clearFile();
+            }
+        });
 
-input.value = "";
+        function clearFile() {
+            fileInput.value = "";
+            filePreview.classList.add("hidden");
+        }
 
-}
+        function sendMessage() {
+            const message = tx.value.trim();
 
-</script>
+            if (!message && fileInput.files.length === 0) return;
 
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = function () {
+                    socket.send(JSON.stringify({
+                        message: message,
+                        file: reader.result,
+                        filename: file.name
+                    }));
+                    clearFile();
+                }
+                reader.readAsDataURL(file);
+            } else {
+                socket.send(JSON.stringify({
+                    message: message
+                }));
+            }
+
+            tx.value = "";
+            tx.style.height = '44px';
+        }
+
+        // Send on Enter (Shift+Enter for new line)
+        tx.addEventListener("keydown", function (e) {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
 </body>
+
 </html>

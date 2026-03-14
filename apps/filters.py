@@ -244,3 +244,35 @@ class AnnouncementFilterSet(django_filters.FilterSet):
         if mode == "min":
             return queryset.filter(**{f"{alias}__gte": value})
         return queryset.filter(**{f"{alias}__lte": value})
+
+
+# filters.py
+import django_filters
+from apps.models import Announcement
+
+class AnnouncementOrderFilterSet(django_filters.FilterSet):
+    order = django_filters.ChoiceFilter(
+        method="filter_order",
+        label="Saralash",
+        choices=(
+            ("new", "Eng yangi"),
+            ("old", "Eng eski"),
+            ("expensive", "Eng qimmat"),
+            ("cheap", "Eng arzon"),
+        )
+    )
+
+    class Meta:
+        model = Announcement
+        fields = []
+
+    def filter_order(self, queryset, name, value):
+        if value == "new":
+            return queryset.order_by("-created_at")
+        elif value == "old":
+            return queryset.order_by("created_at")
+        elif value == "expensive":
+            return queryset.order_by("-price")
+        elif value == "cheap":
+            return queryset.order_by("price")
+        return queryset

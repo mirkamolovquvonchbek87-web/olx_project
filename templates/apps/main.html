@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -36,10 +37,11 @@
           <span class="cursor-pointer text-gray-400 hover:text-white">Рус</span>
         </div>
 
-        <div class="flex items-center gap-2 cursor-pointer hover:text-cyan-400">
+        <a href="{% if user.is_authenticated %}{% url 'user_chats_page' %}{% else %}{% url 'login_page' %}{% endif %}"
+          class="flex items-center gap-2 cursor-pointer hover:text-cyan-400">
           <i class="fa-regular fa-comment text-xl"></i>
           <span class="hidden lg:inline font-semibold text-sm">Чат</span>
-        </div>
+        </a>
 
         <div class="flex items-center cursor-pointer hover:text-cyan-400">
           <i class="fa-regular fa-heart text-xl"></i>
@@ -50,29 +52,29 @@
         </div>
 
         <!-- Профиль: если залогинен -> profile_page, иначе -> login_page -->
+        {# <div class="flex items-center">#}
+
+            {# <i class="fa-regular fa-user text-xl"></i>#}
+            {# <span class="hidden md:inline">Профиль</span>#}
+            {# </a>#}
+          {# </div>#}
         <div class="flex items-center">
-          <a
-            {% if user.is_authenticated %}
-              href="{% url 'profile_page' %}"
-            {% else %}
-              href="{% url 'login_page' %}"
-            {% endif %}
-            class="flex items-center gap-2 font-semibold text-sm transition-colors hover:text-cyan-400"
-          >
+          <a href="{% if user.is_authenticated %}{% url 'profile_page' %}{% else %}{% url 'login_page' %}{% endif %}"
+            class="flex items-center gap-2 font-semibold text-sm transition-colors hover:text-cyan-400">
             <i class="fa-regular fa-user text-xl"></i>
             <span class="hidden md:inline">Профиль</span>
           </a>
         </div>
 
         <button class="bg-white text-[#002f34] px-4 py-2 rounded font-bold hover:bg-gray-100 transition text-sm">
-           <a href="{%   url "add_announcement_page" %}" >Подать объявление</a>
+          <a href="{% url 'add_announcement_page' %}">Подать объявление</a>
         </button>
 
         {% if user.is_authenticated %}
-          <a href="{% url 'logout_page' %}"
-             class="flex items-center gap-2 font-semibold text-sm transition-colors hover:text-cyan-400">
-            <span class="hidden md:inline">Logout</span>
-          </a>
+        <a href="{% url 'logout_page' %}"
+          class="flex items-center gap-2 font-semibold text-sm transition-colors hover:text-cyan-400">
+          <span class="hidden md:inline">Logout</span>
+        </a>
         {% endif %}
       </div>
     </div>
@@ -82,39 +84,28 @@
 
 
   <!-- SEARCH -->
-<div class="bg-white border-b border-gray-200 py-8">
-  <div class="max-w-6xl mx-auto px-4">
-    <form method="get" action="{% url 'announcement_search_page' %}"
-          class="flex flex-col md:flex-row gap-0.5 shadow-sm rounded border border-gray-200 overflow-hidden">
-      <div class="flex-1 bg-white p-4 flex items-center gap-3">
-        <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
-        <input
-          type="text"
-          name="q"
-          value="{{ search_value }}"
-          placeholder="Что ищете?"
-          class="w-full outline-none text-sm"
-        />
-      </div>
+  <div class="bg-white border-b border-gray-200 py-8">
+    <div class="max-w-6xl mx-auto px-4">
+      <form method="get" action="{% url 'announcement_search_page' %}"
+        class="flex flex-col md:flex-row gap-0.5 shadow-sm rounded border border-gray-200 overflow-hidden">
+        <div class="flex-1 bg-white p-4 flex items-center gap-3">
+          <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
+          <input type="text" name="q" value="{{ search_value }}" placeholder="Что ищете?"
+            class="w-full outline-none text-sm" />
+        </div>
 
-      <div class="flex-1 bg-white p-4 flex items-center gap-3 border-t md:border-t-0 md:border-l border-gray-100">
-        <i class="fa-solid fa-location-dot text-gray-400"></i>
-        <input
-          type="text"
-          placeholder="Вся страна"
-          class="w-full outline-none text-sm"
-        />
-      </div>
+        <div class="flex-1 bg-white p-4 flex items-center gap-3 border-t md:border-t-0 md:border-l border-gray-100">
+          <i class="fa-solid fa-location-dot text-gray-400"></i>
+          <input type="text" placeholder="Вся страна" class="w-full outline-none text-sm" />
+        </div>
 
-      <button
-        type="submit"
-        class="bg-[#002f34] text-white px-10 py-4 font-bold hover:bg-[#004d55] transition text-sm"
-      >
-        Поиск
-      </button>
-    </form>
+        <button type="submit"
+          class="bg-[#002f34] text-white px-10 py-4 font-bold hover:bg-[#004d55] transition text-sm">
+          Поиск
+        </button>
+      </form>
+    </div>
   </div>
-</div>
 
 
   <!-- MAIN -->
@@ -139,7 +130,8 @@
       <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
 
       <div class="flex justify-center mt-12">
-        <button class="border-2 border-[#002f34] text-[#002f34] px-8 py-3 font-bold hover:bg-[#002f34] hover:text-white transition rounded">
+        <button
+          class="border-2 border-[#002f34] text-[#002f34] px-8 py-3 font-bold hover:bg-[#002f34] hover:text-white transition rounded">
           Посмотреть все
         </button>
       </div>
@@ -154,30 +146,30 @@
     // --- Data (из Django) ---
     const CATEGORIES = [
       {% for category in categories %}
-        {
-          id: "{{ category.slug|escapejs }}",
-          name: "{{ category.name|escapejs }}",
-          img: "{{ category.image.url|escapejs }}",
-          subCategories: [
-            {% for child in category.children.all %}
-              { name: "{{ child.name|escapejs }}", slug: "{{ child.slug|escapejs }}" },
-            {% endfor %}
+    {
+      id: "{{ category.slug|escapejs }}",
+        name: "{{ category.name|escapejs }}",
+          img: "{% if category.image %}{{ category.image.url|escapejs }}{% endif %}",
+            subCategories: [
+              {% for child in category.children.all %}
+    { name: "{{ child.name|escapejs }}", slug: "{{ child.slug|escapejs }}" },
+    {% endfor %}
           ]
         },
-      {% endfor %}
+    {% endfor %}
     ];
 
     const PRODUCTS = [
       {% for ann in announcements %}
-        {
-          id: {{ ann.id }},
-          title: "{{ ann.name|escapejs }}",
-          price: "{{ ann.price|escapejs }}",
+    {
+      id: {{ ann.id }},
+      title: "{{ ann.name|escapejs }}",
+        price: "{{ ann.price|escapejs }}",
           location: "Ташкент, Чиланзарский район",
-          date: "Сегодня в 20:11",
-          img: "{{ ann.images.first.image.url|escapejs }}"
-        },
-      {% endfor %}
+            date: "Сегодня в 20:11",
+              img: "{% if ann.images.first %}{{ ann.images.first.image.url|escapejs }}{% endif %}"
+    },
+    {% endfor %}
     ];
 
     // --- State ---
@@ -314,4 +306,5 @@
     renderProducts();
   </script>
 </body>
+
 </html>

@@ -8,7 +8,7 @@ from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, UpdateView, DeleteView, DetailView
-from apps.filters import AnnouncementFilterSet
+from apps.filters import AnnouncementFilterSet, AnnouncementOrderFilterSet
 from apps.models import Announcement, Category, User ,Chat
 from apps.forms import AnnouncementModelForm, RegisterModelForm, EmailLoginForm
 from apps.models import Announcement, Category, User
@@ -77,12 +77,22 @@ class AnnouncementListView(ListView):
         categories = self.category.get_descendants(include_self=True)
 
         queryset = Announcement.objects.filter(category__in=categories)
+
         self.filterset = AnnouncementFilterSet(
             self.request.GET,
             queryset=queryset,
             category=self.category
         )
-        return self.filterset.qs
+        queryset = self.filterset.qs
+
+
+        self.order_filter = AnnouncementOrderFilterSet(
+            self.request.GET,
+            queryset=queryset
+        )
+        return self.order_filter.qs
+
+
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -205,9 +215,77 @@ def category_attributes(request, slug):
 
 
 
+#
+# class ChatPageView(LoginRequiredMixin, DetailView):
+#     model = Chat
+#     template_name = 'apps/chat.html'
+#     context_object_name = "chat"
+#     pk_url_kwarg = "chat_id"
+#
+#     message.is_image = message.file.name.lower().endswith(
+#         (".jpg", ".png", ".jpeg", ".gif", ".webp")
+#     )
+#
+#     def get_context_data(self, **kwargs):
+#         context = super().get_context_data(**kwargs)
+#         # Fetch chats for the sidebar
+#         context['chats'] = Chat.objects.filter(
+#             Q(user1=self.request.user) | Q(user2=self.request.user)
+#         ).distinct().order_by("-created_at")
+#
+#         # Identify the other user in the current chat
+#         chat = self.object
+#         if chat.user1 == self.request.user:
+#             context['other_user'] = chat.user2
+#         else:
+#             context['other_user'] = chat.user1
+#
+#         return context
 
-class ChatPageView(DetailView):
+class ChatPageView(LoginRequiredMixin, DetailView):
     model = Chat
     template_name = 'apps/chat.html'
     context_object_name = "chat"
     pk_url_kwarg = "chat_id"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # sidebar chats
+        context['chats'] = Chat.objects.filter(
+            Q(user1=self.request.user) | Q(user2=self.request.user)
+        ).distinct().order_by("-created_at")
+
+        chat = self.object
+
+        # other user
+        if chat.user1 == self.request.user:
+            context['other_user'] = chat.user2
+        else:
+            context['other_user'] = chat.user1
+
+
+        messages = chat.messages.all()
+
+        for m in messages:
+            if m.file:
+                m.is_image = m.file.name.lower().endswith(
+                    (".jpg", ".png", ".jpeg", ".gif", ".webp")
+                )
+            else:
+                m.is_image = False
+
+        context['messages'] = messages
+        context['has_messages'] = messages.exists()
+
+        return context
+
+class UserChatsView(LoginRequiredMixin, ListView):
+    model = Chat
+    template_name = 'apps/chats.html'
+    context_object_name = 'chats'
+
+    def get_queryset(self):
+        return Chat.objects.filter(
+            Q(user1=self.request.user) | Q(user2=self.request.user)
+        ).distinct().order_by("-created_at")

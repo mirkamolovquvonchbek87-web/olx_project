@@ -1,4 +1,4 @@
-from django.contrib.admin import ModelAdmin
+from django.contrib.admin import ModelAdmin, TabularInline
 from django.contrib import admin
 from django.db.models import JSONField
 from django_json_widget.widgets import JSONEditorWidget
@@ -14,9 +14,18 @@ class CategoryModelAdmin(ModelAdmin):
     }
 
 
+class AnnouncementImageTabularInline(TabularInline):
+    model = AnnouncementImage
+    min_num = 1
+    extra = 0
+
+
 @admin.register(Announcement)
-class AnnouncementModelAdmin(ModelAdmin):
-    pass
+class AnnouncementModelAdmin(admin.ModelAdmin):
+    list_display = ['name']
+    inlines = AnnouncementImageTabularInline,
+
+
 
 
 @admin.register(AnnouncementImage)

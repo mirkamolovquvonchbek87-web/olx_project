@@ -257,6 +257,19 @@
                     </div>
                 {% endif %}
             {% endfor %}
+                <div>
+            <label class="text-xs text-gray-500 uppercase font-bold">Сортировка</label>
+
+            <select name="order"
+                    onchange="this.form.submit()"
+                    class="w-full bg-white border-b-2 border-gray-300 px-4 py-3 outline-none focus:border-[#002f34]">
+                <option value="">Все</option>
+                <option value="new" {% if request.GET.order == "new" %}selected{% endif %}>Eng yangi</option>
+                <option value="old" {% if request.GET.order == "old" %}selected{% endif %}>Eng eski</option>
+                <option value="expensive" {% if request.GET.order == "expensive" %}selected{% endif %}>Eng qimmat</option>
+                <option value="cheap" {% if request.GET.order == "cheap" %}selected{% endif %}>Eng arzon</option>
+            </select>
+        </div>
         </div>
         <div class="flex items-end">
             <button type="submit"
