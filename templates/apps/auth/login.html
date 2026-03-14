@@ -104,7 +104,7 @@
         <label for="tab-login" class="tab-label">Войти</label>
 
         <input type="radio" name="tabs" id="tab-register" class="hidden">
-        <label for="tab-register" class="tab-label">Зарегистрироваться</label>
+        <a  for="tab-register" class="tab-label" href="{%   url "register_page" %}" >Зарегистрироваться</a>
       </div>
 
       <!-- Form Container -->
@@ -114,12 +114,12 @@
             {% csrf_token %}
           <div>
             <label class="block text-[#002f34] text-sm font-medium mb-2">Электронная почта или телефон</label>
-            <input type="text" class="olx-input w-full p-4 rounded-md" placeholder="">
+            <input type="email" name="username" class="olx-input w-full p-4 rounded-md" placeholder="">
           </div>
 
           <div class="relative">
             <label class="block text-[#002f34] text-sm font-medium mb-2">Пароль</label>
-            <input type="password" class="olx-input w-full p-4 rounded-md pr-12">
+            <input type="password" name="password" class="olx-input w-full p-4 rounded-md pr-12">
             <button type="button" class="absolute right-4 top-[42px] text-gray-400 hover:text-[#002f34]">
               <i class="far fa-eye text-lg"></i>
             </button>
@@ -136,8 +136,13 @@
           </button>
         </form>
       </div>
-
-
+    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <p>{{ error }}</p>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
     </div>
   </body>
 </html>

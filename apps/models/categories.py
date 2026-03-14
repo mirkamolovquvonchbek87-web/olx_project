@@ -1,4 +1,6 @@
 from django.db.models import CharField, JSONField, CASCADE
+from django.db.models import CASCADE, JSONField
+from django.db.models.fields import CharField
 from mptt.fields import TreeForeignKey
 from mptt.models import MPTTModel
 

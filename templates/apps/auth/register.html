@@ -97,23 +97,23 @@
 
       <!-- Tabs -->
       <div class="flex mb-8">
-        <input type="radio" name="tabs" id="tab-login" class="hidden" checked>
-        <label for="tab-login" class="tab-label">Войти</label>
+        <input type="radio" name="tabs" id="tab-login" class="hidden" >
+        <a href="{%   url "login_page" %}" for="tab-login" class="tab-label">Войти</a>
         
-        <input type="radio" name="tabs" id="tab-register" class="hidden">
+        <input type="radio" name="tabs" id="tab-register" class="hidden" checked>
         <label for="tab-register" class="tab-label">Зарегистрироваться</label>
       </div>
 
       <!-- Form Container -->
       <!-- Register Form -->
-<form class="register-form space-y-5">
-
+<form method="post" action="{% url 'register_page' %}" class="register-form space-y-5">
+    {% csrf_token %}
   <!-- Email -->
   <div>
     <label class="block text-[#002f34] text-[14px] mb-2">
       Электронная почта или телефон
     </label>
-    <input type="text"
+    <input type="email" name="email"
       class="w-full h-[52px] bg-[#f2f4f5] rounded-md px-4
              focus:bg-white focus:border-2 focus:border-[#002f34] outline-none">
   </div>
@@ -123,7 +123,7 @@
     <label class="block text-[#002f34] text-[14px] mb-2">
       Пароль
     </label>
-    <input type="password"
+    <input  type="password" name="password"
       class="w-full h-[52px] bg-[#f2f4f5] rounded-md px-4 pr-12
              focus:bg-white focus:border-2 focus:border-[#002f34] outline-none">
     <button type="button"

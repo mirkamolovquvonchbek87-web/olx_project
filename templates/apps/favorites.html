@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Saralangan qidiruv natijalar</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f4f5;
+      color: #002f34;
+    }
+
+    .olx-container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    .tab-active {
+      color: #002f34;
+      font-weight: 700;
+      border-bottom: 3px solid #002f34;
+    }
+
+    .empty-illustration {
+      position: relative;
+      width: 106px;
+      height: 106px;
+      margin: 0 auto 24px;
+      border-radius: 50%;
+      background: #f6a38f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: visible;
+    }
+
+    .hair-top {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      background: #002f34;
+      border-radius: 50%;
+      top: -2px;
+      left: 40px;
+    }
+
+    .hair-main {
+      position: absolute;
+      width: 42px;
+      height: 28px;
+      background: #002f34;
+      border-radius: 50% 50% 45% 45%;
+      top: 17px;
+      left: 22px;
+      transform: rotate(-22deg);
+    }
+
+    .face {
+      position: absolute;
+      width: 32px;
+      height: 34px;
+      background: #ffd6c8;
+      border-radius: 45%;
+      top: 30px;
+      left: 26px;
+    }
+
+    .body {
+      position: absolute;
+      width: 62px;
+      height: 30px;
+      background: #002f34;
+      border-radius: 50% 50% 40% 40%;
+      bottom: 0;
+      left: 16px;
+    }
+
+    .hand {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: #ffd6c8;
+      border-radius: 50%;
+      right: 12px;
+      bottom: 8px;
+    }
+
+    .eye {
+      position: absolute;
+      width: 5px;
+      height: 5px;
+      background: #002f34;
+      border-radius: 50%;
+      top: 48px;
+    }
+
+    .eye.left {
+      left: 37px;
+    }
+
+    .eye.right {
+      left: 50px;
+    }
+
+    .magnifier {
+      position: absolute;
+      width: 46px;
+      height: 46px;
+      border: 6px solid #ff5636;
+      border-radius: 50%;
+      right: 14px;
+      top: 30px;
+      background: #ffe9e2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-sizing: border-box;
+    }
+
+    .magnifier::after {
+      content: "";
+      position: absolute;
+      width: 18px;
+      height: 6px;
+      background: #ff5636;
+      border-radius: 10px;
+      right: -9px;
+      bottom: -3px;
+      transform: rotate(45deg);
+    }
+
+    .magnifier i {
+      color: #002f34;
+      font-size: 17px;
+    }
+  </style>
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="bg-[#002f34] text-white">
+    <div class="olx-container px-6 h-[68px] flex items-center justify-between">
+      <div class="flex items-center">
+        <div class="text-[56px] font-black leading-none tracking-tight text-[#23e5db]">
+          olx
+        </div>
+      </div>
+
+      <div class="flex items-center gap-6">
+        <div class="flex items-center gap-2 cursor-pointer hover:text-cyan-300 transition">
+          <i class="fa-regular fa-comment text-[24px]"></i>
+          <span class="font-semibold text-[16px]">Chat</span>
+        </div>
+
+        <div class="text-[18px]">
+          <span class="text-white/60">O'Z</span>
+          <span class="mx-2 text-white/60">|</span>
+          <span class="text-white">PY</span>
+        </div>
+
+        <div class="cursor-pointer hover:text-cyan-300 transition">
+          <i class="fa-regular fa-heart text-[24px]"></i>
+        </div>
+
+        <div class="relative cursor-pointer hover:text-cyan-300 transition">
+          <i class="fa-regular fa-bell text-[24px]"></i>
+          <span class="absolute -top-2 -right-2 bg-[#ffce32] text-[#002f34] text-[11px] font-bold rounded-full w-5 h-5 flex items-center justify-center">
+            2
+          </span>
+        </div>
+
+        <div class="flex items-center gap-3 cursor-pointer hover:text-cyan-300 transition">
+          <i class="fa-regular fa-user text-[24px]"></i>
+          <span class="font-semibold text-[16px]">Hisobingiz</span>
+        </div>
+
+        <button class="bg-white text-[#002f34] px-6 h-[46px] rounded font-bold text-[18px] hover:bg-gray-100 transition">
+          E'lon berish
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="olx-container">
+    <section class="px-6 pt-10">
+      <h1 class="text-[54px] leading-[1.05] font-bold text-[#002f34]">
+        Saralangan qidiruv natijalar
+      </h1>
+    </section>
+
+    <!-- TABS -->
+    <section class="px-6 pt-24">
+      <div class="flex items-end gap-12 text-[22px] border-b border-[#cfd9db]">
+        <button class="pb-5 text-[#406367] hover:text-[#002f34] transition">
+          Saralangan e'lonlar
+        </button>
+
+        <button class="pb-5 tab-active"https://github.com/>
+          Saqlangan qidiruvlar
+        </button>
+
+        <button class="pb-5 text-[#406367] hover:text-[#002f34] transition">
+          Yaqinda ko'rib chiqilganlar
+        </button>
+      </div>
+    </section>
+
+    <!-- EMPTY STATE -->
+    <section class="min-h-[520px] flex items-center justify-center px-6">
+      <div class="text-center -mt-10">
+        <div class="empty-illustration">
+          <div class="hair-top"></div>
+          <div class="hair-main"></div>
+          <div class="face"></div>
+          <div class="body"></div>
+          <div class="hand"></div>
+          <div class="eye left"></div>
+          <div class="eye right"></div>
+
+          <div class="magnifier">
+            <i class="fa-solid fa-heart"></i>
+          </div>
+        </div>
+
+        <h2 class="text-[28px] font-bold text-[#002f34] mb-3">
+          Saralanganlaringizni yaqin tuting
+        </h2>
+
+        <p class="text-[20px] text-[#002f34] mb-7 max-w-[760px]">
+          Barcha qurilmalaringizda e'lonlar va qidiruvlarni saqlash uchun kiring yoki profil oching.
+        </p>
+
+        <button class="bg-[#002f34] text-white px-8 h-[46px] rounded font-bold text-[18px] hover:bg-[#01464d] transition">
+          Kiring yoki profil oching
+        </button>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
