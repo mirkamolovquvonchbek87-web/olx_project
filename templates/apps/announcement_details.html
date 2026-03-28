@@ -159,7 +159,7 @@
                     </div>
 
                     {% if request.user.is_authenticated and request.user != announcement.user %}
-                    <a href="#" class="w-full">
+                    <a href="{% url 'start_chat' user_id=announcement.user.id %}" class="w-full">
                         <button
                             class="w-full border-2 border-[#002f34] text-[#002f34] bg-white text-center font-bold py-3 rounded hover:bg-[#002f34] hover:text-white transition text-sm mb-3 group">
                             <i class="fa-regular fa-comment mr-2 group-hover:animate-pulse"></i> Написать
@@ -202,7 +202,8 @@
 
                 <!-- Views Count -->
                 <div class="px-2 mt-4 flex items-center text-xs text-gray-400 gap-2">
-                    <i class="fa-regular fa-eye text-sm"></i> Просмотры: <span class="font-bold">{{announcement.views_count }}</span>
+                    <i class="fa-regular fa-eye text-sm"></i> Просмотры: <span
+                        class="font-bold">{{announcement.views_count }}</span>
                 </div>
 
                 <!-- Location Box -->

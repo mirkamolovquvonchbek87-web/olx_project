@@ -418,3 +418,11 @@ class UserProfileView(DetailView):
         context['fav_ids'] = list(fav_ids)
         
         return context
+
+class StartChatView(LoginRequiredMixin, View):
+    def get(self, request, user_id):
+        other_user = get_object_or_404(User, id=user_id)
+        if request.user == other_user:
+            return redirect('user_profile', pk=user_id)
+        chat, created = Chat.get_or_create_chat(request.user, other_user)
+        return redirect('chat_page', chat_id=chat.id)
