@@ -1,0 +1,192 @@
+{% extends 'apps/base.html' %}
+{% load static %}
+
+{% block title %}Sevimlilar – OLX{% endblock %}
+
+{% block extra_head %}
+<style>
+    /* Kard animatsiyasi */
+    .fav-card {
+        transition: box-shadow 0.2s, transform 0.2s;
+    }
+
+    .fav-card:hover {
+        box-shadow: 0 8px 24px rgba(0, 47, 52, 0.13);
+        transform: translateY(-2px);
+    }
+
+    /* Progress bar */
+    .limit-bar-fill {
+        transition: width 0.4s ease;
+    }
+
+    /* Bo'sh holat animatsiyasi */
+    @keyframes float {
+
+        0%,
+        100% {
+            transform: translateY(0);
+        }
+
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    .float-anim {
+        animation: float 3s ease-in-out infinite;
+    }
+</style>
+{% endblock %}
+
+{% block search_section %}{% endblock %}
+
+{% block content %}
+<main class="max-w-6xl mx-auto px-4 py-10">
+
+    <!-- Sarlavha + Limit panel -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-[#002f34]">
+                <i class="fa-solid fa-heart text-red-500 mr-2"></i>
+                Sevimli e'lonlar
+            </h1>
+            <p class="text-sm text-gray-500 mt-1">Saqlab qo'ygan e'lonlaringiz shu yerda</p>
+        </div>
+
+        <!-- Limit counter -->
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 px-6 py-4 min-w-[220px]">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-sm font-semibold text-[#002f34]">Limit</span>
+                <span
+                    class="text-sm font-bold {% if total >= limit %}text-red-500{% elif total >= 100 %}text-yellow-500{% else %}text-green-600{% endif %}">
+                    {{ total }} / {{ limit }}
+                </span>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
+                <div class="limit-bar-fill h-2.5 rounded-full {% if total >= limit %}bg-red-500{% elif total >= 100 %}bg-yellow-400{% else %}bg-green-500{% endif %}"
+                    style="width: {{ total|default:0 }}%">
+                </div>
+            </div>
+            {% if total >= limit %}
+            <p class="text-xs text-red-500 mt-2 font-medium">
+                <i class="fa-solid fa-circle-exclamation mr-1"></i> Maksimal limit to'ldi!
+            </p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- ===== BO'SH HOLAT ===== -->
+    {% if not favourites %}
+    <div class="flex flex-col items-center justify-center py-24 text-center">
+        <div class="float-anim mb-6">
+            <div class="w-28 h-28 rounded-full bg-red-50 flex items-center justify-center shadow-lg">
+                <i class="fa-regular fa-heart text-6xl text-red-300"></i>
+            </div>
+        </div>
+        <h2 class="text-xl font-bold text-[#002f34] mb-2">Sevimlilar ro'yxatingiz bo'sh</h2>
+        <p class="text-sm text-gray-500 mb-8 max-w-sm">
+            E'lonlar sahifasidagi ❤️ tugmasini bosib, o'zingizga yoqqan e'lonlarni saqlang.
+        </p>
+        <a href="{% url 'main_page' %}"
+            class="bg-[#002f34] text-white px-8 py-3 rounded-lg font-bold hover:bg-[#004d55] transition text-sm shadow-md">
+            E'lonlarni ko'rish
+        </a>
+    </div>
+
+    <!-- ===== E'LONLAR GRIDI ===== -->
+    {% else %}
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5" id="favouritesGrid">
+        {% for fav in favourites %}
+        <div class="fav-card bg-white rounded-xl overflow-hidden border border-gray-100 flex flex-col h-full group"
+            id="fav-card-{{ fav.announcement.pk }}">
+
+            <!-- Rasm -->
+            <div class="relative h-44 bg-gray-100 overflow-hidden">
+                {% with ann_images=fav.announcement.images.all %}
+                {% if ann_images %}
+                <img src="{{ ann_images.0.image.url }}" alt="{{ fav.announcement.name }}"
+                    class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                {% else %}
+                <div
+                    class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 text-gray-300">
+                    <i class="fa-solid fa-image text-4xl"></i>
+                </div>
+                {% endif %}
+                {% endwith %}
+
+                <!-- Yurak (olib tashlash) -->
+                <button
+                    class="absolute top-3 right-3 w-9 h-9 rounded-full bg-white shadow-md flex items-center justify-center text-red-500 hover:scale-110 transition active:scale-95"
+                    onclick="removeFromFavorites({{ fav.announcement.pk }}, this)" title="Sevimlilardan olib tashlash">
+                    <i class="fa-solid fa-heart text-base"></i>
+                </button>
+
+                <!-- VIP badge -->
+                {% if fav.announcement.product_type == 'vip' %}
+                <span
+                    class="absolute top-3 left-3 bg-amber-400 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">VIP</span>
+                {% endif %}
+            </div>
+
+            <!-- Ma'lumot -->
+            <div class="p-4 flex-1 flex flex-col justify-between">
+                <div>
+                    <h3 class="font-semibold text-[#002f34] text-sm leading-tight mb-1 line-clamp-2">
+                        {{fav.announcement.name }}</h3>
+                    <p class="text-[11px] text-gray-400">
+                        <i class="fa-solid fa-tag mr-1"></i>{{ fav.announcement.category.name }}
+                    </p>
+                </div>
+
+                <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                    <span class="font-bold text-[#002f34] text-base">
+                        {{ fav.announcement.price }} <span class="text-xs font-normal text-gray-500">so'm</span>
+                    </span>
+                    <span class="text-[10px] text-gray-400">
+                        <i class="fa-regular fa-clock mr-1"></i>{{ fav.created_at|date:"d.m.Y" }}
+                    </span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    async function removeFromFavorites(announcementId, btn) {
+        // We use the global toggleFavorite but add the card removal logic here
+        // Or we just call it directly since we need specific UI feedback for this page
+        try {
+            const response = await fetch(`/favorites/toggle/${announcementId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'Content-Type': 'application/json'
+                }
+            });
+            const data = await response.json();
+
+            if (data.status === 'removed') {
+                const card = document.getElementById(`fav-card-${announcementId}`);
+                if (card) {
+                    card.style.opacity = '0';
+                    card.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        card.remove();
+                        // If empty, reload or show empty state
+                        if (document.getElementById('favouritesGrid').children.length === 0) {
+                            location.reload();
+                        }
+                    }, 300);
+                }
+            }
+        } catch (error) {
+            console.error('Error removing favorite:', error);
+        }
+    }
+</script>
+{% endblock %}

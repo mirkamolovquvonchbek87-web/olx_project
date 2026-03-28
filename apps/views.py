@@ -13,7 +13,7 @@ from apps.models import Announcement, Category, User ,Chat
 from apps.forms import AnnouncementModelForm, RegisterModelForm, EmailLoginForm
 from apps.models import Announcement, Category, User
 from django.views.generic import ListView
-from apps.models.announcements import AnnouncementImage
+from apps.models.announcements import AnnouncementImage, FavouriteAnnouncement
 from root import settings
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
@@ -31,7 +31,7 @@ class MainView(ListView):
 
         announcements = Announcement.objects.filter(
             product_type=Announcement.AnnouncementType.VIP
-        )
+        ).select_related('district__region').prefetch_related('images')
 
         q = self.request.GET.get("q")
         if q:
@@ -40,8 +40,19 @@ class MainView(ListView):
                 Q(description__icontains=q)
             ).distinct()
 
+        region_id = self.request.GET.get("region")
+        if region_id:
+            announcements = announcements.filter(district__region_id=region_id)
+
+        fav_ids = []
+        if self.request.user.is_authenticated:
+            fav_ids = FavouriteAnnouncement.objects.filter(
+                user=self.request.user
+            ).values_list('announcement_id', flat=True)
+
         context['announcements'] = announcements
         context['search_value'] = q or ""
+        context['fav_ids'] = list(fav_ids)
         return context
 
 
@@ -50,17 +61,30 @@ class AnnouncementSearchView(ListView):
     context_object_name = "announcements"
 
     def get_queryset(self):
-        queryset = Announcement.objects.all()
+        queryset = Announcement.objects.all().select_related('district__region').prefetch_related('images')
+        
+        region_id = self.request.GET.get("region")
+        if region_id:
+            queryset = queryset.filter(district__region_id=region_id)
+
         self.filterset = AnnouncementFilterSet(self.request.GET, queryset=queryset, category=None)
         return self.filterset.qs
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        
+        fav_ids = []
+        if self.request.user.is_authenticated:
+            fav_ids = FavouriteAnnouncement.objects.filter(
+                user=self.request.user
+            ).values_list('announcement_id', flat=True)
+
         context["filter"] = self.filterset
         context["dynamic_fields"] = self.filterset.dynamic_fields
         context["top_categories"] = Category.objects.filter(parent=None)
         context["current_category"] = None
         context["search_value"] = self.request.GET.get("q", "")
+        context['fav_ids'] = list(fav_ids)
         return context
 
 
@@ -101,6 +125,32 @@ class AnnouncementListView(ListView):
         context["top_categories"] = Category.objects.filter(parent=None)
         context["current_category"] = self.category
         context["search_value"] = self.request.GET.get("q", "")
+        return context
+
+
+class AnnouncementDetailView(DetailView):
+    model = Announcement
+    template_name = "apps/announcement_details.html"
+    context_object_name = "announcement"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        context['similar_announcements'] = Announcement.objects.filter(
+            category=self.object.category
+        ).exclude(id=self.object.id).select_related('district__region').prefetch_related('images')[:10]
+        
+        context['user_announcements'] = Announcement.objects.filter(
+            user=self.object.user
+        ).exclude(id=self.object.id).select_related('district__region').prefetch_related('images')[:10]
+        
+        fav_ids = []
+        if self.request.user.is_authenticated:
+            fav_ids = FavouriteAnnouncement.objects.filter(
+                user=self.request.user
+            ).values_list('announcement_id', flat=True)
+        context['fav_ids'] = list(fav_ids)
+        
         return context
 
 class CustomLoginView(LoginView):
@@ -289,3 +339,53 @@ class UserChatsView(LoginRequiredMixin, ListView):
         return Chat.objects.filter(
             Q(user1=self.request.user) | Q(user2=self.request.user)
         ).distinct().order_by("-created_at")
+
+
+class FavouriteListView(LoginRequiredMixin, ListView):
+    template_name = 'apps/favourites.html'
+    context_object_name = 'favourites'
+    login_url = 'login_page'
+
+    def get_queryset(self):
+        return FavouriteAnnouncement.objects.filter(
+            user=self.request.user
+        ).select_related('announcement__user').prefetch_related('announcement__images')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['total'] = self.get_queryset().count()
+        context['limit'] = 150
+        fav_ids = FavouriteAnnouncement.objects.filter(
+            user=self.request.user
+        ).values_list('announcement_id', flat=True)
+        context['fav_ids'] = list(fav_ids)
+        return context
+
+
+class FavouriteToggleView(LoginRequiredMixin, View):
+    login_url = 'login_page'
+
+    def post(self, request, pk, *args, **kwargs):
+        announcement = get_object_or_404(Announcement, pk=pk)
+        fav = FavouriteAnnouncement.objects.filter(
+            user=request.user, announcement=announcement
+        ).first()
+
+        if fav:
+            fav.delete()
+            status = 'removed'
+        else:
+            count = FavouriteAnnouncement.objects.filter(user=request.user).count()
+            if count >= 150:
+                return JsonResponse({
+                    'status': 'error',
+                    'message': "Siz maksimal 150 ta sevimli e'longa ega bo'la olasiz."
+                }, status=400)
+            FavouriteAnnouncement.objects.create(
+                user=request.user,
+                announcement=announcement
+            )
+            status = 'added'
+
+        total = FavouriteAnnouncement.objects.filter(user=request.user).count()
+        return JsonResponse({'status': status, 'count': total})

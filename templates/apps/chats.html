@@ -1,70 +1,39 @@
-<!DOCTYPE html>
-<html lang="ru">
+{% extends 'apps/base.html' %}
+{% load static %}
 
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Сообщения - OLX</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        body {
-            background-color: #f2f4f5;
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-        }
+{% block title %}Сообщения - OLX Clone{% endblock %}
 
-        /* Hide scrollbar for clean chat list */
-        .scrollbar-hide::-webkit-scrollbar {
-            display: none;
-        }
+{% block extra_head %}
+<style>
+    /* Hide scrollbar for clean chat list */
+    .scrollbar-hide::-webkit-scrollbar {
+        display: none;
+    }
 
-        .scrollbar-hide {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-    </style>
-</head>
+    .scrollbar-hide {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
 
-<body class="flex flex-col h-screen max-h-screen overflow-hidden">
+    /* Fixed height layout for chat */
+    .chat-layout {
+        height: calc(100vh - 64px);
+        /* Header height subtracted */
+        overflow: hidden;
+    }
+</style>
+{% endblock %}
 
-    <!-- HEADER -->
-    <header class="bg-[#002f34] text-white flex-shrink-0 z-10">
-        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-8">
-                <div class="text-3xl font-black tracking-tighter cursor-pointer">
-                    <a href="{% url 'main_page' %}">OLX</a>
-                </div>
-            </div>
-            <div class="flex items-center gap-4 md:gap-6">
-                <a href="{% url 'user_chats_page' %}"
-                    class="flex items-center gap-2 cursor-pointer hover:text-cyan-400">
-                    <i class="fa-regular fa-comment text-xl"></i>
-                    <span class="hidden lg:inline font-semibold text-sm">Чат</span>
-                </a>
-                <div class="flex items-center cursor-pointer hover:text-cyan-400">
-                    <i class="fa-regular fa-heart text-xl"></i>
-                </div>
-                <div class="flex items-center cursor-pointer hover:text-cyan-400">
-                    <a href="{% url 'profile_page' %}"
-                        class="flex items-center gap-2 font-semibold text-sm transition-colors hover:text-cyan-400">
-                        <i class="fa-regular fa-user text-xl"></i>
-                        <span class="hidden md:inline">Профиль</span>
-                    </a>
-                </div>
-                <button
-                    class="bg-white text-[#002f34] px-4 py-2 rounded font-bold hover:bg-gray-100 transition text-sm">
-                    <a href="{% url 'add_announcement_page' %}">Подать объявление</a>
-                </button>
-            </div>
-        </div>
-    </header>
+{% block search_section %}{% endblock %}
 
+{% block content %}
+<div class="chat-layout flex flex-col">
     <!-- SUB-HEADER (Navigation) -->
     <nav class="bg-white border-b border-gray-200 flex-shrink-0 hidden md:block z-10">
         <div class="max-w-6xl mx-auto px-4 flex gap-6 text-[13px] font-semibold text-gray-500 overflow-x-auto">
-            <a href="#" class="py-4 hover:text-[#002f34]">Объявления</a>
+            <a href="{% url 'profile_page' %}" class="py-4 hover:text-[#002f34]">Объявления</a>
             <a href="#" class="py-4 hover:text-[#002f34]">Панель Работодателя</a>
-            <a href="#" class="py-4 border-b-2 border-[#002f34] text-[#002f34]">Чат</a>
+            <a href="{% url 'user_chats_page' %}" class="py-4 border-b-2 border-[#002f34] text-[#002f34]">Чат</a>
             <a href="#" class="py-4 hover:text-[#002f34]">Платежи и счет OLX</a>
             <a href="#" class="py-4 hover:text-[#002f34]">Ищу работу</a>
             <a href="#" class="py-4 hover:text-[#002f34]">Настройки</a>
@@ -111,7 +80,6 @@
                 <!-- Scrollable Chats List -->
                 <div class="flex-1 overflow-y-auto scrollbar-hide border-t border-gray-100">
 
-                    <!-- Image Placeholder for "НЕПРОЧИТАННЫЕ" missing since we don't have exactly the same, but we show the header -->
                     <div
                         class="px-4 py-3 text-[10px] font-bold text-[#002f34] uppercase tracking-wider bg-gray-50 border-b border-gray-100">
                         Непрочитанные</div>
@@ -151,11 +119,10 @@
         <section
             class="hidden md:flex flex-1 bg-white rounded shadow-sm items-center justify-center flex-col h-full border border-transparent">
             <div class="w-48 h-48 mb-6 relative">
-                <!-- Abstract cute chatting icon taking inspiration from OLX -->
                 <div
-                    class="absolute inset-0 bg-[#3a77ff] rounded-full flex items-center justify-center opacity-10 blur-2xl transform scale-150 relative">
+                    class="absolute inset-0 bg-[#3a77ff] rounded-full flex items-center justify-center opacity-10 blur-2xl transform scale-150">
                 </div>
-                <svg viewBox="0 0 200 200" class="w-full h-full text-[#3a77ff] absolute inset-0 drop-shadow-lg"
+                <svg viewBox="0 0 200 200" class="w-full h-full text-[#3a77ff] relative drop-shadow-lg"
                     fill="currentColor">
                     <path
                         d="M129.5 45H70.5C48.2 45 30 63.2 30 85.5V108.5C30 130.8 48.2 149 70.5 149H75.1L82.6 164C86.5 171.8 97.4 171.8 101.3 164L108.8 149H129.5C151.8 149 170 130.8 170 108.5V85.5C170 63.2 151.8 45 129.5 45Z"
@@ -171,6 +138,7 @@
         </section>
 
     </main>
-</body>
+</div>
+{% endblock %}
 
-</html>
+{% block footer %}{% endblock %}

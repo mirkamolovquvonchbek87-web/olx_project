@@ -1,369 +1,307 @@
+{% extends 'apps/base.html' %}
 {% load form_extras %}
 
+{% block title %}{{ category.name|default:"Поиск" }} - OLX Clone{% endblock %}
 
+{% block extra_head %}
+<style>
+    /* Улучшенная обертка */
+    .filter-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 250px;
+    }
 
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ category.name }} - OLX Clone</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        /* Улучшенная обертка */
-        .filter-wrapper {
-            position: relative;
-            width: 100%; /* Пусть занимает всю ширину колонки сетки */
-            max-width: 250px;
-        }
+    /* Имитация select */
+    .filter-select-imitation {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        background: white;
+        border-radius: 0;
+        cursor: pointer;
+        border-bottom: 2px solid #ced4da;
+        transition: border-color 0.3s;
+    }
 
-        /* Имитация select */
-        .filter-select-imitation {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px;
-            background: white; /* Белый фон лучше смотрится в сетке */
-            border-radius: 0;
-            cursor: pointer;
-            border-bottom: 2px solid #ced4da; /* Стиль OLX */
-            transition: border-color 0.3s;
-        }
+    .filter-select-imitation:hover {
+        border-bottom-color: #002f34;
+    }
 
-        .filter-select-imitation:hover {
-            border-bottom-color: #002f34;
-        }
+    /* Список категорий */
+    .main-categories {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        width: 280px;
+        background: white;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 50;
+    }
 
-        /* Список категорий */
-        .main-categories {
-            display: none;
-            position: absolute;
-            top: 100%;
-            left: 0;
-            width: 280px; /* Фиксированная ширина для удобства */
-            background: white;
-            list-style: none;
-            padding: 0;
-            margin: 0;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            z-index: 50;
-        }
+    .category-item {
+        position: relative;
+        padding: 10px 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: #002f34;
+        border-bottom: 1px solid #f2f4f5;
+    }
 
-        .category-item {
-            position: relative;
-            padding: 10px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #002f34;
-            border-bottom: 1px solid #f2f4f5;
-        }
+    /* Подкатегории */
+    .sub-categories {
+        display: none;
+        position: absolute;
+        top: 0;
+        left: 100%;
+        width: 280px;
+        background: white;
+        border-left: 1px solid #f2f4f5;
+        box-shadow: 10px 4px 12px rgba(0, 0, 0, 0.1);
+        list-style: none;
+        padding: 0;
+        z-index: 60;
+    }
 
-        /* Подкатегории */
-        .sub-categories {
-            display: none;
-            position: absolute;
-            top: 0;
-            left: 100%; /* Вылет вправо */
-            width: 280px;
-            background: white;
-            border-left: 1px solid #f2f4f5;
-            box-shadow: 10px 4px 12px rgba(0, 0, 0, 0.1);
-            list-style: none;
-            padding: 0;
-            z-index: 60;
-        }
+    /* Оформление счетчика (числа) */
+    .count-badge {
+        background: #f2f4f5;
+        color: #002f34;
+        font-size: 10px;
+        padding: 2px 8px;
+        border-radius: 12px;
+        margin-right: 8px;
+    }
 
-        /* Оформление счетчика (числа) */
-        .count-badge {
-            background: #f2f4f5;
-            color: #002f34;
-            font-size: 10px;
-            padding: 2px 8px;
-            border-radius: 12px;
-            margin-right: 8px;
-        }
+    .category-item:hover {
+        background-color: #002f34;
+        color: white;
+    }
 
-        .category-item:hover {
-            background-color: #002f34;
-            color: white;
-        }
+    .category-item:hover .count-badge {
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
 
-        .category-item:hover .count-badge {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-        }
+    /* Показываем */
+    .hidden-check:checked~.main-categories {
+        display: block;
+    }
 
-        /* Показываем */
-        .hidden-check:checked ~ .main-categories {
-            display: block;
-        }
+    .category-item:hover>.sub-categories {
+        display: block;
+    }
 
-        .category-item:hover > .sub-categories {
-            display: block;
-        }
+    /* Чтобы меню не закрывалось, когда мы ведем мышку к подкатегории */
+    .sub-categories::before {
+        content: "";
+        position: absolute;
+        left: -10px;
+        top: 0;
+        width: 10px;
+        height: 100%;
+    }
+</style>
+{% endblock %}
 
-        /* Чтобы меню не закрывалось, когда мы ведем мышку к подкатегории */
-        .sub-categories::before {
-            content: "";
-            position: absolute;
-            left: -10px;
-            top: 0;
-            width: 10px;
-            height: 100%;
-        }
-    </style>
-</head>
-<body>
+{% block search_section %}{% endblock %}
 
-<header class="bg-[#002f34] text-white">
-                <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-                    <div class="flex items-center gap-8">
-                        <div class="text-3xl font-black tracking-tighter cursor-pointer"><a href="{% url 'main_page' %}">OLX</a></div>
-                    </div>
-
-                    <div class="flex items-center gap-4 md:gap-6">
-                        <div class="flex items-center text-sm font-bold border-r border-gray-600 pr-4 h-5">
-                            <span class="cursor-pointer hover:underline">O'Z</span>
-                            <span class="mx-2 text-gray-500">|</span>
-                            <span class="cursor-pointer text-gray-400 hover:text-white">Рус</span>
-                        </div>
-
-                        <div class="flex items-center gap-2 cursor-pointer hover:text-cyan-400">
-                            <i class="fa-regular fa-comment text-xl"></i>
-                            <span class="hidden lg:inline font-semibold text-sm">Чат</span>
-                        </div>
-
-                        <div class="flex items-center cursor-pointer hover:text-cyan-400">
-                            <i class="fa-regular fa-heart text-xl"></i>
-                        </div>
-
-                        <div class="flex items-center cursor-pointer hover:text-cyan-400">
-                            <i class="fa-regular fa-bell text-xl"></i>
-                        </div>
-
-                        <div class="flex items-center">
-    <a {% if user.is_authenticated %} href="{% url 'profile_page' %}" {% else %} href="{% url 'login_page' %}" {% endif %}
-       class="flex items-center gap-2 font-semibold text-sm transition-colors hover:text-cyan-400">
-        <i class="fa-regular fa-user text-xl"></i>
-        <span class="hidden md:inline">Профиль</span>
-    </a>
-
-</div>
-
-                        <button type="button" class="bg-white text-[#002f34] px-4 py-2 rounded font-bold hover:bg-gray-100 transition text-sm">
-                            <a href="{%   url "add_announcement_page" %}" >Подать объявление</a>
-</button>
-
-
-
-            {% if user.is_authenticated %}<a  href="{% url 'logout_page' %}"
-       class="flex items-center gap-2 font-semibold text-sm transition-colors hover:text-cyan-400 2">
-        <i></i>
-        <span class="hidden md:inline">Logout</span>
-    </a>
-    {% else %}{% endif %}
-    </div>
-    </div>
-    </header>
-
+{% block content %}
 <main class="max-w-6xl mx-auto px-4 py-6">
-
     <section class="bg-white p-6 rounded shadow-sm mb-6">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-[#002f34]">Фильтры</h2>
-            <button class="border-2 border-[#002f34] px-4 py-1 rounded font-bold text-sm hover:bg-gray-50">
-                <i class="fa-regular fa-heart mr-2"></i> Добавить в избранное
-            </button>
         </div>
-    <form method="get" class="mb-6">
-  <div class="flex gap-2">
-    <input
-      type="text"
-      name="q"
-      value="{{ search_value }}"
-      placeholder="Что ищете?"
-      class="w-full border border-gray-300 rounded px-4 py-2"
-    >
-    <button
-      type="submit"
-      class="bg-[#002f34] text-white px-6 py-2 rounded font-bold"
-    >
-      Поиск
-    </button>
-  </div>
 
+        <form method="get" action="" class="mb-6">
+            <div class="flex gap-2 mb-6">
+                <div class="flex-1 relative">
+                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" name="q" value="{{ search_value }}" placeholder="Что ищете?"
+                        class="w-full border border-gray-300 rounded pl-11 pr-4 py-2 outline-none focus:border-[#002f34]">
+                </div>
+                <div class="w-64 relative">
+                    <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                   <select name="region"
+                        class="w-full border border-gray-300 rounded pl-11 pr-10 py-2 outline-none focus:border-[#002f34] appearance-none bg-white">
 
+                        <option value="">Вся страна</option>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+                        {% for region in regions %}
+                            <option value="{{ region.id }}"
+                                {% if request.GET.region|stringformat:"s" == region.id|stringformat:"s" %}
+                                    selected
+                                {% endif %}>
+                                {{ region.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                    <i
+                        class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none"></i>
+                </div>
+                <button type="submit"
+                    class="bg-[#002f34] text-white px-8 py-2 rounded font-bold hover:bg-[#004f56] transition">
+                    Поиск
+                </button>
+            </div>
 
-
-            <div class="filter-wrapper">
-                <label class="text-xs text-gray-500 uppercase font-bold">Категория</label>
-                <input type="checkbox" id="menu-toggle" class="hidden-check">
-
-                <label for="menu-toggle" class="filter-select-imitation">
-                    <span class="text-sm">Выберите категорию</span>
-                    <span class="text-[10px] text-gray-400">▼</span>
-                </label>
-
-                <ul class="main-categories">
-                    {% for category in top_categories %}
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="filter-wrapper">
+                    <label class="text-xs text-gray-500 uppercase font-bold block mb-1">Категория</label>
+                    <input type="checkbox" id="menu-toggle" class="hidden-check hidden">
+                    <label for="menu-toggle" class="filter-select-imitation">
+                        <span class="text-sm">{{ current_category.name|default:"Выберите категорию" }}</span>
+                        <span class="text-[10px] text-gray-400">▼</span>
+                    </label>
+                    <ul class="main-categories">
+                        {% for category in top_categories %}
                         <li class="category-item">
                             <span class="text-sm font-medium">{{ category.name }}</span>
                             <div class="flex items-center">
-                                <span class="count-badge">123</span> <span class="text-gray-400">›</span>
+                                <span class="text-gray-400">›</span>
                             </div>
-
                             <ul class="sub-categories">
                                 <li class="p-4 font-bold text-[#002f34] border-b">Все в {{ category.name }}</li>
                                 {% for sub in category.children.all %}
-                                    <li class="hover:bg-gray-100 flex justify-between items-center p-3">
-                                        <a href="{% url 'announcement_list_page' sub.slug %}"
-                                           class="text-sm text-[#002f34] w-full">
-                                            {{ sub.name }}
-                                        </a>
-                                        <span class="count-badge">45</span>
-                                    </li>
+                                <li class="hover:bg-gray-100 p-3">
+                                    <a href="{% url 'announcement_list_page' sub.slug %}"
+                                        class="text-sm text-[#002f34] block w-full">
+                                        {{ sub.name }}
+                                    </a>
+                                </li>
                                 {% endfor %}
                             </ul>
                         </li>
-                    {% endfor %}
-                </ul>
-            </div>
-
-           <div>
-                <label class="text-xs text-gray-500 uppercase font-bold">Цена</label>
-                <div class="flex gap-2">
-                    {{ filter.form.min_price }}
-                    {{ filter.form.max_price }}
+                        {% endfor %}
+                    </ul>
                 </div>
-            </div>
 
-            {% for item in dynamic_fields %}
-                {% if item.type == "range" %}
-                    <div>
-                        <label class="text-xs text-gray-500 uppercase font-bold">{{ item.label }}</label>
-                        <div class="flex gap-2">
-                            {{ filter.form|get_field:item.min_name }}
-                            {{ filter.form|get_field:item.max_name }}
-                        </div>
-                    </div>
-                {% else %}
-                    <div>
-                        <label class="text-xs text-gray-500 uppercase font-bold">{{ item.label }}</label>
-                        {{ filter.form|get_field:item.name }}
-                    </div>
-                {% endif %}
-            {% endfor %}
                 <div>
-            <label class="text-xs text-gray-500 uppercase font-bold">Сортировка</label>
+                    <label class="text-xs text-gray-500 uppercase font-bold block mb-1">Цена</label>
+                    <div class="flex gap-2">
+                        {{ filter.form.min_price }}
+                        {{ filter.form.max_price }}
+                    </div>
+                </div>
 
-            <select name="order"
-                    onchange="this.form.submit()"
-                    class="w-full bg-white border-b-2 border-gray-300 px-4 py-3 outline-none focus:border-[#002f34]">
-                <option value="">Все</option>
-                <option value="new" {% if request.GET.order == "new" %}selected{% endif %}>Eng yangi</option>
-                <option value="old" {% if request.GET.order == "old" %}selected{% endif %}>Eng eski</option>
-                <option value="expensive" {% if request.GET.order == "expensive" %}selected{% endif %}>Eng qimmat</option>
-                <option value="cheap" {% if request.GET.order == "cheap" %}selected{% endif %}>Eng arzon</option>
-            </select>
-        </div>
-        </div>
-        <div class="flex items-end">
-            <button type="submit"
-                    class="bg-[#002f34] text-white px-6 py-3 rounded font-bold hover:bg-[#004f56] transition">
-                Применить
-            </button>
-        </div>
-            </form>
+                {% for item in dynamic_fields %}
+                {% if item.type == "range" %}
+                <div>
+                    <label class="text-xs text-gray-500 uppercase font-bold block mb-1">{{ item.label }}</label>
+                    <div class="flex gap-2">
+                        {{ filter.form|get_field:item.min_name }}
+                        {{ filter.form|get_field:item.max_name }}
+                    </div>
+                </div>
+                {% else %}
+                <div>
+                    <label class="text-xs text-gray-500 uppercase font-bold block mb-1">{{ item.label }}</label>
+                    {{ filter.form|get_field:item.name }}
+                </div>
+                {% endif %}
+                {% endfor %}
+                <div>
+                    <label class="text-xs text-gray-500 uppercase font-bold block mb-1">Сортировка</label>
+                    <select name="order" onchange="this.form.submit()"
+                        class="w-full bg-white border-b-2 border-gray-300 px-4 py-3 outline-none focus:border-[#002f34]">
 
+                        {% with selected_order=request.GET.order|default:"" %}
 
-            <br>
-            <div>
-                <label class="text-xs text-gray-500 uppercase font-bold">Состояние</label>
-                <select class="filter-select">
-                    <option>Все объявления</option>
-                </select>
-            </div>
-            <div>
-                <label class="text-xs text-gray-500 uppercase font-bold">Год выпуска</label>
-                <div class="flex gap-1">
-                    <select class="filter-select">
-                        <option>От:</option>
-                    </select>
-                    <select class="filter-select">
-                        <option>До:</option>
+                            <option value="" {% if selected_order == "" %}selected{% endif %}>
+                                Все
+                            </option>
+
+                            <option value="new" {% if selected_order == "new" %}selected{% endif %}>
+                                Eng yangi
+                            </option>
+
+                            <option value="old" {% if selected_order == "old" %}selected{% endif %}>
+                                Eng eski
+                            </option>
+
+                            <option value="expensive" {% if selected_order == "expensive" %}selected{% endif %}>
+                                Eng qimmat
+                            </option>
+
+                            <option value="cheap" {% if selected_order == "cheap" %}selected{% endif %}>
+                                Eng arzon
+                            </option>
+
+                        {% endwith %}
                     </select>
                 </div>
             </div>
-        </div>
 
-        <div class="mt-8 flex justify-between border-b">
-            <div class="flex gap-8">
-                <button class="pb-3 border-b-4 border-[#002f34] font-bold text-sm">Все объявления</button>
-                <button class="pb-3 text-gray-500 text-sm hover:text-black">Бизнес</button>
-                <button class="pb-3 text-gray-500 text-sm hover:text-black">Частное</button>
+            <div class="flex justify-end mt-6">
+                <a href="?" class="text-sm text-gray-500 underline self-center mr-6">Сбросить фильтры</a>
+                <button type="submit"
+                    class="bg-[#002f34] text-white px-10 py-3 rounded font-bold hover:bg-[#004f56] transition">
+                    Применить
+                </button>
             </div>
-            <button class="text-sm text-gray-500 underline mb-2">Сбросить фильтры</button>
-        </div>
+        </form>
     </section>
 
-
-
-
-
-
-
-    <div class="flex flex-wrap gap-4 mb-8 text-sm text-[#002f34]">
-        {% for brand in manufacturers %}
-            <a href="#" class="font-semibold hover:underline">{{ brand.name }} <span class="text-gray-400 font-normal">1 234</span></a>
-        {% endfor %}
-        <button class="font-bold border-b border-dotted border-black">Показать все <i
-                class="fa-solid fa-chevron-down text-[10px]"></i></button>
-    </div>
-
-    <h3 class="text-xl font-bold text-[#002f34] mb-4">Мы нашли более 1 000 объявлений</h3>
+    <h3 class="text-xl font-bold text-[#002f34] mb-4">Мы нашли {{ announcements.count }} объявлений</h3>
 
     <div class="space-y-4">
         {% for announcement in announcements %}
-            <div class="bg-white rounded overflow-hidden shadow-sm flex flex-col md:flex-row relative group hover:shadow-md transition">
-                <div class="w-full md:w-72 h-48 relative flex-shrink-0">
-                    <img src="{{ announcement.images.first.image.url }}" class="w-full h-full object-cover" alt="" >
-                    <span class="absolute bottom-2 left-2 bg-[#23e5db] text-[#002f34] text-[10px] font-bold px-1 uppercase">ТОП</span>
+        <a href="{% url 'announcement_detail' slug=announcement.slug %}"
+            class="bg-white rounded overflow-hidden shadow-sm flex flex-col md:flex-row relative group hover:shadow-md transition block">
+            <div class="w-full md:w-72 h-48 relative flex-shrink-0 bg-gray-100">
+                {% if announcement.images.first %}
+                <img src="{{ announcement.images.first.image.url }}" class="w-full h-full object-cover" alt="">
+                {% endif %}
+                {% if announcement.product_type == 'vip' %}
+                <span
+                    class="absolute bottom-2 left-2 bg-[#23e5db] text-[#002f34] text-[10px] font-bold px-1 uppercase">ТОП</span>
+                {% endif %}
+            </div>
+
+            <div class="p-4 flex flex-col justify-between flex-grow">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <h4
+                            class="text-lg text-[#002f34] leading-tight group-hover:text-cyan-600 cursor-pointer font-semibold">
+                            {{ announcement.name }}
+                        </h4>
+                        <i class="{% if announcement.id in fav_ids %}fa-solid heart-active{% else %}fa-regular{% endif %} fa-heart text-xl cursor-pointer hover:text-red-500 transition-colors"
+                            onclick="toggleFavorite({{ announcement.id }}, this)"></i>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">
+                        {% if announcement.district %}
+                        {{ announcement.district.name }}
+                        {% if announcement.district.region %}
+                        , {{ announcement.district.region.name }}
+                        {% endif %}
+                        {% endif %}
+                        - {{ announcement.created_at|date:"d F Y" }}
+                    </p>
                 </div>
 
-                <div class="p-4 flex flex-col justify-between flex-grow">
-                    <div>
-                        <div class="flex justify-between items-start">
-                            <h4 class="text-lg text-[#002f34] leading-tight group-hover:text-cyan-600 cursor-pointer">
-                                {{ announcement.name }}
-                            </h4>
-                            <i class="fa-regular fa-heart text-xl cursor-pointer hover:text-red-500"></i>
-                        </div>
-                        <p class="text-xs text-gray-500 mt-2">Ташкент, Юнусабадский район - Сегодня в 12:45</p>
+                <div class="flex justify-between items-end mt-4">
+                    <div class="text-sm text-gray-500">
+                        {% for key, value in announcement.attribute.items %}
+                        <span class="mr-4"><b>{{ key }}:</b> {{ value }}</span>
+                        {% endfor %}
                     </div>
-
-                    <div class="flex justify-between items-end mt-4">
-                        <div class="text-xs text-gray-500">
-                            <i class="fa-regular fa-calendar mr-1"></i> 2025 - 0 км
-                        </div>
-                        <div class="text-right">
-                            <p class="text-xl font-bold text-[#002f34]">{{ announcement.price }} сум</p>
-                            <p class="text-xs text-gray-400">Договорная</p>
-                        </div>
+                    <div class="text-right">
+                        <p class="text-xl font-bold text-[#002f34]">{{ announcement.price }} сум</p>
                     </div>
                 </div>
             </div>
+        </a>
+        {% empty %}
+        <div class="text-center py-20 bg-white rounded shadow-sm">
+            <p class="text-gray-500">По вашему запросу ничего не найдено.</p>
+        </div>
         {% endfor %}
     </div>
-
 </main>
-
-<footer class="bg-white mt-12 py-12 border-t text-center text-xs text-gray-400">
-    <p>© 2026 OLX Clone Performance</p>
-</footer>
-
-</body>
-</html>
+{% endblock %}

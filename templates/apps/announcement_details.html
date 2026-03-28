@@ -1,0 +1,267 @@
+{% extends 'apps/base.html' %}
+{% load static %}
+
+{% block title %}OLX - {{ announcement.name }}{% endblock %}
+
+{% block content %}
+<main class="bg-[#f2f4f5] py-8">
+    <div class="max-w-6xl mx-auto px-4">
+
+        <!-- Breadcrumbs -->
+        <div class="text-sm text-gray-500 mb-6 flex gap-2 items-center flex-wrap">
+            <a href="{% url 'main_page' %}" class="hover:text-[#002f34] transition font-medium">Главная</a>
+            <span><i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i></span>
+            {% if announcement.category %}
+            <a href="{% url 'announcement_list_page' slug=announcement.category.slug %}"
+                class="hover:text-[#002f34] transition font-medium">{{ announcement.category.name }}</a>
+            <span><i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i></span>
+            {% endif %}
+            <span class="text-gray-400">{{ announcement.name|truncatechars:30 }}</span>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="flex flex-col lg:flex-row gap-6">
+
+            <!-- LEFT COLUMN -->
+            <div class="flex-1 min-w-0 flex flex-col gap-6">
+
+                <!-- Image Gallery container -->
+                <div class="bg-white rounded shadow-sm overflow-hidden p-0 relative">
+                    <!-- Favorite Icon -->
+                    <div class="absolute top-4 right-4 z-10 bg-white/70 backdrop-blur rounded-full w-10 h-10 flex items-center justify-center shadow hover:bg-white transition cursor-pointer"
+                        onclick="toggleFavorite({{ announcement.id }}, this.querySelector('i'))">
+                        <i
+                            class="{% if announcement.id in fav_ids %}fa-solid heart-active text-red-500{% else %}fa-regular text-[#002f34]{% endif %} fa-heart text-xl transition-colors"></i>
+                    </div>
+
+                    <!-- Carousel Container -->
+                    <div class="relative bg-black aspect-[4/3] sm:aspect-[16/9] flex items-center justify-center mb-4">
+                        {% if announcement.images.all %}
+                        <div id="imageSlider"
+                            class="flex w-full h-full overflow-x-auto snap-x snap-mandatory scrollbar-hide"
+                            style="scrollbar-width: none; -ms-overflow-style: none;">
+                            {% for img in announcement.images.all %}
+                            <img src="{{ img.image.url }}" class="w-full h-full object-contain shrink-0 snap-center"
+                                alt="Product image">
+                            {% endfor %}
+                        </div>
+                        {% if announcement.images.count > 1 %}
+                        <!-- Controls -->
+                        <button
+                            onclick="document.getElementById('imageSlider').scrollBy({left: -300, behavior: 'smooth'})"
+                            class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white hover:bg-gray-100 rounded-full flex items-center justify-center text-xl text-[#002f34] shadow transition"><i
+                                class="fa-solid fa-chevron-left ml-[-2px]"></i></button>
+                        <button
+                            onclick="document.getElementById('imageSlider').scrollBy({left: 300, behavior: 'smooth'})"
+                            class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white hover:bg-gray-100 rounded-full flex items-center justify-center text-xl text-[#002f34] shadow transition"><i
+                                class="fa-solid fa-chevron-right mr-[-2px]"></i></button>
+                        {% endif %}
+                        {% else %}
+                        <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 text-gray-400">
+                            <i class="fa-regular fa-image text-5xl mb-3"></i>
+                            <span>Нет фото</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="px-6 pb-6 pt-2">
+                        <div class="flex justify-between items-start border-b border-gray-100 pb-4 mb-4">
+                            <div class="pr-4">
+                                <p class="text-[10px] text-gray-500 mb-3 font-bold tracking-widest border border-gray-200 inline-block px-2 py-1 bg-gray-50 uppercase rounded-sm">
+                                    {% if announcement.product_type == "vip" %}
+                                        TOP
+                                    {% else %}
+                                        Обычное
+                                    {% endif %}
+                                </p>
+
+                                <h1 class="text-xl md:text-2xl font-bold text-[#002f34] break-words">
+                                    {{ announcement.name }}
+                                </h1>
+
+                                <div class="text-2xl font-bold text-[#002f34] mt-4">
+                                    {{ announcement.price|default:"0" }} сум
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center text-xs text-gray-400">
+                            <span>{{ announcement.district.name }}, {{ announcement.district.region.name }}</span>
+                            <span>Опубликовано: {{ announcement.created_at|date:"d F Y H:i" }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {% if announcement.attribute %}
+                <!-- Attributes -->
+                <div class="bg-white rounded shadow-sm p-6">
+                    <h2 class="text-sm text-[#002f34] font-bold uppercase mb-4 tracking-wider">Характеристики</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-sm">
+                                            {% if announcement.attribute %}
+                        {% for key, value in announcement.attribute.items %}
+                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-gray-500">
+                                    {{ key|default:"-" }}
+                                </span>
+
+                                <span class="text-[#002f34] font-semibold text-right max-w-[50%] break-words">
+                                    {{ value|default:"-" }}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-gray-400 text-sm">Атрибуты отсутствуют</p>
+                    {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Description -->
+                <div class="bg-white rounded shadow-sm p-6">
+                    <h2 class="text-sm text-[#002f34] font-bold uppercase mb-4 tracking-wider">Описание</h2>
+                    <div class="text-[#002f34] leading-relaxed whitespace-pre-wrap text-[15px]">
+                        {{ announcement.description|default:"Нет описания" }}
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT COLUMN (Seller Info & Stats) -->
+            <div class="w-full lg:w-[340px] shrink-0 flex flex-col gap-6">
+
+                <!-- User Info -->
+                <div class="bg-white rounded shadow-sm p-6 flex flex-col items-center border-t-4 border-[#002f34]">
+                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 w-full text-left">
+                        Пользователь</h3>
+
+                 <div class="flex items-center gap-4 w-full mb-6">
+                        <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center shrink-0 text-2xl text-gray-400 overflow-hidden">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+
+                        <div>
+                            <h2 class="text-lg font-bold text-[#002f34]">
+                                {{ announcement.user.first_name|default:"Пользователь" }}
+                                {{ announcement.user.last_name|default:"" }}
+                            </h2>
+
+                            <p class="text-[11px] text-gray-500 mt-1">
+                                на OLX с {{ announcement.user.created_at|date:"F Y"|default:"—" }}
+                            </p>
+
+                            <p class="text-[11px] text-cyan-600 mt-1 flex items-center gap-1 font-medium">
+                                <span class="w-2 h-2 rounded-full bg-green-500 inline-block"></span>
+                                Онлайн
+                            </p>
+                        </div>
+                    </div>
+
+                    {% if request.user.is_authenticated and request.user != announcement.user %}
+                    <a href="#" class="w-full">
+                        <button
+                            class="w-full border-2 border-[#002f34] text-[#002f34] bg-white text-center font-bold py-3 rounded hover:bg-[#002f34] hover:text-white transition text-sm mb-3 group">
+                            <i class="fa-regular fa-comment mr-2 group-hover:animate-pulse"></i> Написать
+                        </button>
+                    </a>
+                    {% elif not request.user.is_authenticated %}
+                    <a href="{% url 'login_page' %}" class="w-full">
+                        <button
+                            class="w-full border-2 border-[#002f34] text-[#002f34] bg-white text-center font-bold py-3 rounded hover:bg-[#002f34] hover:text-white transition text-sm mb-3">
+                            <i class="fa-regular fa-comment mr-2"></i> Войти, чтобы написать
+                        </button>
+                    </a>
+                    {% endif %}
+                <button
+                        class="w-full bg-[#002f34] text-white text-center font-bold py-3 rounded hover:bg-[#004d55] transition text-sm relative overflow-hidden group">
+
+                        {% if announcement.user.phone_number %}
+                            <span class="group-hover:opacity-0 transition-opacity">
+                                Показать телефон
+                            </span>
+
+                            <span class="absolute inset-0 flex items-center justify-center font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                                {{ announcement.user.phone_number }}
+                            </span>
+                        {% else %}
+                            <span>
+                                +998 •• ••• •• ••
+                            </span>
+                        {% endif %}
+
+                </button>
+
+
+                </div>
+
+                <!-- Location Box -->
+                <div class="bg-white rounded shadow-sm p-6">
+                    <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4">Местоположение</h3>
+                    <div class="flex items-start gap-3">
+                        <i class="fa-solid fa-location-dot text-xl text-[#002f34] mt-1"></i>
+                        <div>
+                        {% if announcement.district %}
+                            <p class="font-bold text-[#002f34]">
+                                {{ announcement.district.name|default:"Город" }}
+                            </p>
+
+                            <p class="text-sm text-gray-500 mt-1">
+                                {{ announcement.district.region.name|default:"Регион" }}
+                            </p>
+                        {% else %}
+                            <p class="font-bold text-[#002f34]">Город</p>
+                            <p class="text-sm text-gray-500 mt-1">Регион</p>
+                        {% endif %}
+                    </div>
+                    </div>
+
+                    <div
+                        class="mt-4 bg-gray-100 rounded-lg h-32 flex items-center justify-center overflow-hidden relative">
+                        <svg class="w-full h-full text-gray-300" fill="currentColor" viewBox="0 0 24 24">
+                            <path
+                                d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
+                        </svg>
+                        <div class="absolute inset-0 bg-[#002f34]/5 mix-blend-multiply"></div>
+                    </div>
+                </div>
+
+                <!-- Report Issue -->
+                <div
+                    class="flex items-center justify-center gap-2 text-sm text-[#002f34] hover:text-cyan-600 transition cursor-pointer font-medium mt-2">
+                    <i class="fa-regular fa-flag"></i> Жалоба
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- RECOMMENDED / SIMILAR SECTION -->
+        {% if similar_announcements %}
+        <section class="mt-16">
+            <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
+                <h2 class="text-2xl font-bold text-[#002f34]">Похожие объявления</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {% for ann in similar_announcements %}
+                {% include 'apps/includes/product_card.html' with ann=ann %}
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <!-- USER'S OTHER ANNOUNCEMENTS -->
+        {% if user_announcements %}
+        <section class="mt-16 mb-8">
+            <div class="flex items-center justify-between mb-8 pb-4 border-b border-gray-200">
+                <h2 class="text-2xl font-bold text-[#002f34]">Все объявления автора</h2>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {% for ann in user_announcements %}
+                {% include 'apps/includes/product_card.html' with ann=ann %}
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+    </div>
+</main>
+{% endblock %}

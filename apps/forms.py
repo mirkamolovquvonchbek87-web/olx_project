@@ -1,5 +1,4 @@
 import json
-from django.contrib.auth.hashers import make_password
 from django.forms import ModelForm, CharField, EmailField
 from django.core.exceptions import ValidationError
 from .models import Announcement, User
@@ -42,7 +41,7 @@ class RegisterModelForm(ModelForm):
 
     class Meta:
         model = User
-        fields = [ 'email', 'password']
+        fields = ['email', 'password']
 
     def clean_email(self):
         email = self.cleaned_data.get('email')
@@ -50,10 +49,12 @@ class RegisterModelForm(ModelForm):
             raise ValidationError("Bunaqa pochta ro'yhatdan o'tgan")
         return email
 
-    def clean(self):
-        password = self.cleaned_data.get("password")
-        self.cleaned_data["password"] = make_password(password)
-        return self.cleaned_data
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data['password'])
+        if commit:
+            user.save()
+        return user
 
 
 

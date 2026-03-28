@@ -246,9 +246,6 @@ class AnnouncementFilterSet(django_filters.FilterSet):
         return queryset.filter(**{f"{alias}__lte": value})
 
 
-# filters.py
-import django_filters
-from apps.models import Announcement
 
 class AnnouncementOrderFilterSet(django_filters.FilterSet):
     order = django_filters.ChoiceFilter(
