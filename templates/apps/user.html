@@ -1,0 +1,105 @@
+{% extends 'apps/base.html' %}
+{% load form_extras %}
+
+{% block title %}Объявления пользователя {{ profile_user.first_name|default:profile_user.email }} - OLX{% endblock %}
+
+{% block content %}
+<main class="max-w-6xl mx-auto px-4 py-8">
+    <!-- User Info Card -->
+    <section
+        class="bg-white p-6 rounded shadow-sm mb-8 flex flex-col md:flex-row gap-6 items-center md:items-start border-t-4 border-[#002f34]">
+        <div
+            class="w-32 h-32 bg-[#f2f4f5] rounded-full flex items-center justify-center overflow-hidden flex-shrink-0 border-4 border-white shadow-sm">
+            {% if profile_user.avatar %}
+            <img src="{{ profile_user.avatar.url }}" alt="Аватар пользователя" class="w-full h-full object-cover">
+            {% else %}
+            <i class="fa-solid fa-user text-5xl text-[#002f34]"></i>
+            {% endif %}
+        </div>
+        <div class="flex-grow pt-2">
+            <h1 class="text-3xl font-bold text-[#002f34] mb-3">{{ profile_user.first_name|default:profile_user.email|default:"Foydalanuvchi" }}</h1>
+
+            <div class="space-y-2 text-sm text-[#406367]">
+                <p class="flex items-center">
+                    <i class="fa-regular fa-calendar w-5 text-center mr-2"></i>
+                    На OLX с {{ profile_user.date_joined|date:"F Y" }}
+                </p>
+                {% if profile_user.last_login %}
+                <p class="flex items-center">
+                    <i class="fa-regular fa-clock w-5 text-center mr-2"></i>
+                    Онлайн: {{ profile_user.last_login|timesince }} назад
+                </p>
+                {% else %}
+                <p class="flex items-center">
+                    <i class="fa-regular fa-clock w-5 text-center mr-2"></i>
+                    Онлайн недавно
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Active Announcements -->
+    <div class="mb-4">
+        <h3 class="text-2xl font-bold text-[#002f34] border-b-2 border-[#002f34] inline-block pb-2 mb-2">Все объявления
+            автора ({{ announcements.count }})</h3>
+    </div>
+
+    <div class="space-y-4">
+        {% for announcement in announcements %}
+        <a href="{% url 'announcement_detail' slug=announcement.slug %}"
+            class="bg-white rounded overflow-hidden shadow-sm flex flex-col md:flex-row relative group hover:shadow-md transition block border border-transparent hover:border-gray-200">
+            <div class="w-full md:w-64 h-48 relative flex-shrink-0 bg-[#f2f4f5]">
+                {% if announcement.images.first %}
+                <img src="{{ announcement.images.first.image.url }}" class="w-full h-full object-cover" alt="">
+                {% endif %}
+                {% if announcement.product_type == 'vip' %}
+                <span
+                    class="absolute bottom-3 left-3 bg-[#ffce32] text-[#002f34] text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider">ТОП</span>
+                {% endif %}
+            </div>
+
+            <div class="p-5 flex flex-col justify-between flex-grow">
+                <div>
+                    <div class="flex justify-between items-start">
+                        <h4
+                            class="text-xl text-[#002f34] leading-tight group-hover:text-cyan-600 cursor-pointer font-medium pr-8">
+                            {{ announcement.name }}
+                        </h4>
+                        <div class="h-8 w-8 flex items-center justify-center rounded-full hover:bg-red-50 transition-colors"
+                            onclick="event.preventDefault(); toggleFavorite({{ announcement.id }}, this)">
+                            <i
+                                class="{% if announcement.id in fav_ids %}fa-solid heart-active text-red-500{% else %}fa-regular text-[#002f34]{% endif %} fa-heart text-xl cursor-pointer"></i>
+                        </div>
+                    </div>
+                    <p class="text-xs text-[#7f9799] mt-3">
+                        {% if announcement.district %}
+                        {{ announcement.district.name }}
+                        {% if announcement.district.region %}
+                        , {{ announcement.district.region.name }}
+                        {% endif %}
+                        {% endif %}
+                        - {{ announcement.created_at|date:"d M Y" }}
+                    </p>
+                </div>
+
+                <div class="flex justify-between items-end mt-4">
+                    <div class="text-sm text-gray-500"></div>
+                    <div class="text-right">
+                        <p class="text-2xl font-bold text-[#002f34]">{{ announcement.price }} сум</p>
+                    </div>
+                </div>
+            </div>
+        </a>
+        {% empty %}
+        <div class="text-center py-24 bg-white rounded shadow-sm flex flex-col items-center border border-gray-100">
+            <div class="w-20 h-20 bg-[#f2f4f5] rounded-full flex items-center justify-center mb-4">
+                <i class="fa-solid fa-box-open text-3xl text-[#406367]"></i>
+            </div>
+            <h4 class="text-xl font-bold text-[#002f34] mb-2">Нет объявлений</h4>
+            <p class="text-[#406367]">У этого пользователя пока нет активных объявлений.</p>
+        </div>
+        {% endfor %}
+    </div>
+</main>
+{% endblock %}

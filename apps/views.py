@@ -133,6 +133,12 @@ class AnnouncementDetailView(DetailView):
     template_name = "apps/announcement_details.html"
     context_object_name = "announcement"
 
+    def get_object(self, queryset=None):
+        obj = super().get_object(queryset)
+        obj.views_count += 1
+        obj.save(update_fields=['views_count'])
+        return obj
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         
@@ -389,3 +395,26 @@ class FavouriteToggleView(LoginRequiredMixin, View):
 
         total = FavouriteAnnouncement.objects.filter(user=request.user).count()
         return JsonResponse({'status': status, 'count': total})
+
+class UserProfileView(DetailView):
+    model = User
+    template_name = 'apps/user.html'
+    context_object_name = 'profile_user'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # User announcements
+        announcements = Announcement.objects.filter(
+            user=self.object
+        ).select_related('district__region').prefetch_related('images')
+        context['announcements'] = announcements
+        
+        fav_ids = []
+        if self.request.user.is_authenticated:
+            fav_ids = FavouriteAnnouncement.objects.filter(
+                user=self.request.user
+            ).values_list('announcement_id', flat=True)
+        context['fav_ids'] = list(fav_ids)
+        
+        return context

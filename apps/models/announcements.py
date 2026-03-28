@@ -24,6 +24,7 @@ class Announcement(SlugBaseModel, CreatedBaseModel):
     attribute = JSONField(blank=True, null=True)
     seller_type = CharField(max_length=10,choices=SellerTypeChoices.choices, default=SellerTypeChoices.PRIVATE)
     user = ForeignKey("apps.User", CASCADE, related_name='announcements')
+    views_count = PositiveIntegerField(default=0)
 
     @property
     def first_image(self):

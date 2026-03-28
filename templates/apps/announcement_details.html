@@ -67,11 +67,12 @@
                     <div class="px-6 pb-6 pt-2">
                         <div class="flex justify-between items-start border-b border-gray-100 pb-4 mb-4">
                             <div class="pr-4">
-                                <p class="text-[10px] text-gray-500 mb-3 font-bold tracking-widest border border-gray-200 inline-block px-2 py-1 bg-gray-50 uppercase rounded-sm">
+                                <p
+                                    class="text-[10px] text-gray-500 mb-3 font-bold tracking-widest border border-gray-200 inline-block px-2 py-1 bg-gray-50 uppercase rounded-sm">
                                     {% if announcement.product_type == "vip" %}
-                                        TOP
+                                    TOP
                                     {% else %}
-                                        Обычное
+                                    Обычное
                                     {% endif %}
                                 </p>
 
@@ -97,21 +98,21 @@
                 <div class="bg-white rounded shadow-sm p-6">
                     <h2 class="text-sm text-[#002f34] font-bold uppercase mb-4 tracking-wider">Характеристики</h2>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-sm">
-                                            {% if announcement.attribute %}
+                        {% if announcement.attribute %}
                         {% for key, value in announcement.attribute.items %}
-                            <div class="flex justify-between border-b border-gray-100 pb-2">
-                                <span class="text-gray-500">
-                                    {{ key|default:"-" }}
-                                </span>
+                        <div class="flex justify-between border-b border-gray-100 pb-2">
+                            <span class="text-gray-500">
+                                {{ key|default:"-" }}
+                            </span>
 
-                                <span class="text-[#002f34] font-semibold text-right max-w-[50%] break-words">
-                                    {{ value|default:"-" }}
-                                </span>
-                            </div>
+                            <span class="text-[#002f34] font-semibold text-right max-w-[50%] break-words">
+                                {{ value|default:"-" }}
+                            </span>
+                        </div>
                         {% endfor %}
-                    {% else %}
+                        {% else %}
                         <p class="text-gray-400 text-sm">Атрибуты отсутствуют</p>
-                    {% endif %}
+                        {% endif %}
                     </div>
                 </div>
                 {% endif %}
@@ -134,8 +135,9 @@
                     <h3 class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-4 w-full text-left">
                         Пользователь</h3>
 
-                 <div class="flex items-center gap-4 w-full mb-6">
-                        <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center shrink-0 text-2xl text-gray-400 overflow-hidden">
+                    <div class="flex items-center gap-4 w-full mb-6">
+                        <div
+                            class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center shrink-0 text-2xl text-gray-400 overflow-hidden">
                             <i class="fa-solid fa-user"></i>
                         </div>
 
@@ -171,26 +173,36 @@
                         </button>
                     </a>
                     {% endif %}
-                <button
+                    <button
                         class="w-full bg-[#002f34] text-white text-center font-bold py-3 rounded hover:bg-[#004d55] transition text-sm relative overflow-hidden group">
 
                         {% if announcement.user.phone_number %}
-                            <span class="group-hover:opacity-0 transition-opacity">
-                                Показать телефон
-                            </span>
+                        <span class="group-hover:opacity-0 transition-opacity">
+                            Показать телефон
+                        </span>
 
-                            <span class="absolute inset-0 flex items-center justify-center font-bold opacity-0 group-hover:opacity-100 transition-opacity">
-                                {{ announcement.user.phone_number }}
-                            </span>
+                        <span
+                            class="absolute inset-0 flex items-center justify-center font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                            {{ announcement.user.phone_number }}
+                        </span>
                         {% else %}
-                            <span>
-                                +998 •• ••• •• ••
-                            </span>
+                        <span>
+                            +998 •• ••• •• ••
+                        </span>
                         {% endif %}
 
-                </button>
+                    </button>
 
+                    <a href="{% url 'user_profile' pk=announcement.user.pk %}"
+                        class="w-full mt-4 text-center text-[#002f34] text-sm font-semibold hover:underline flex items-center justify-center">
+                        Muallifning boshqa e'lonlari <i class="fa-solid fa-chevron-right ml-2 text-gray-400"></i>
+                    </a>
 
+                </div>
+
+                <!-- Views Count -->
+                <div class="px-2 mt-4 flex items-center text-xs text-gray-400 gap-2">
+                    <i class="fa-regular fa-eye text-sm"></i> Просмотры: <span class="font-bold">{{announcement.views_count }}</span>
                 </div>
 
                 <!-- Location Box -->
@@ -199,7 +211,7 @@
                     <div class="flex items-start gap-3">
                         <i class="fa-solid fa-location-dot text-xl text-[#002f34] mt-1"></i>
                         <div>
-                        {% if announcement.district %}
+                            {% if announcement.district %}
                             <p class="font-bold text-[#002f34]">
                                 {{ announcement.district.name|default:"Город" }}
                             </p>
@@ -207,11 +219,11 @@
                             <p class="text-sm text-gray-500 mt-1">
                                 {{ announcement.district.region.name|default:"Регион" }}
                             </p>
-                        {% else %}
+                            {% else %}
                             <p class="font-bold text-[#002f34]">Город</p>
                             <p class="text-sm text-gray-500 mt-1">Регион</p>
-                        {% endif %}
-                    </div>
+                            {% endif %}
+                        </div>
                     </div>
 
                     <div
