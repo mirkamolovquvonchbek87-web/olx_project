@@ -422,7 +422,14 @@ class UserProfileView(DetailView):
 class StartChatView(LoginRequiredMixin, View):
     def get(self, request, user_id):
         other_user = get_object_or_404(User, id=user_id)
+
+        # Agar user o‘ziga o‘zi chat boshlamoqchi bo‘lsa profilga yubor
         if request.user == other_user:
             return redirect('user_profile', pk=user_id)
-        chat, created = Chat.get_or_create_chat(request.user, other_user)
+
+        # Chatni tekshirish: agar mavjud bo‘lsa olish, yo‘q bo‘lsa yaratish
+        chat, created = Chat.objects.get_or_create_between_users(request.user, other_user)
+
         return redirect('chat_page', chat_id=chat.id)
+
+

@@ -1,9 +1,8 @@
 from django.urls import path
-
 from apps.views import AnnouncementListView, MainView, CustomLoginView, GoogleLoginView, GoogleCallbackView, \
-    RegisterCreateView, \
-    AnnouncementSearchView, ProfileUpdateView, CustomLogoutView, AnnouncementCreateView, category_attributes, \
-    ChatPageView, UserChatsView, FavouriteToggleView, FavouriteListView, AnnouncementDetailView, UserProfileView, StartChatView
+    RegisterCreateView, AnnouncementSearchView, ProfileUpdateView, CustomLogoutView, AnnouncementCreateView, \
+    category_attributes, ChatPageView, UserChatsView, FavouriteToggleView, FavouriteListView, AnnouncementDetailView, \
+    UserProfileView, StartChatView
 
 urlpatterns = [
     path('', MainView.as_view(), name='main_page'),
@@ -25,6 +24,10 @@ urlpatterns = [
     path("chats/", UserChatsView.as_view(), name="user_chats_page"),
 
     path('favorites/', FavouriteListView.as_view(), name='favourites_page'),
-    path('favorites/toggle/<int:pk>/', FavouriteToggleView.as_view(), name='favourite_toggle'),
     path('user/<int:pk>/', UserProfileView.as_view(), name='user_profile'),
+
+#     path("api/categories/roots/", api_categories_roots, name="api_categories_roots"),
+#     path("api/categories/<int:parent_id>/children/", api_categories_children, name="api_categories_children"),
+#     path("api/categories/<int:category_id>/attributes/", api_category_attributes, name="api_category_attributes"),
+
 ]

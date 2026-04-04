@@ -2,7 +2,7 @@ mig:
 	python3 manage.py makemigrations
 	python3 manage.py migrate
 
-user:
+super:
 	python3 manage.py createsuperuser
 
 load:

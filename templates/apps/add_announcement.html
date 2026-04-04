@@ -1,4 +1,4 @@
-{% extends 'apps/base.html' %}
++{% extends 'apps/base.html' %}
 {% load static %}
 
 {% block title %}Создать объявление - OLX Clone{% endblock %}
@@ -238,7 +238,19 @@
             <button type="button" id="closeCategoryModal"
                 class="text-3xl text-gray-400 hover:text-gray-600 transition">×</button>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 h-[500px]">
+        <div id="categoryGrid" class="h-[500px] overflow-y-auto p-6" style="display: none;">
+            <div class="mb-6">
+                <div class="relative w-full max-w-sm">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" placeholder="Поиск"
+                        class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded outline-none focus:border-[#002f34]">
+                </div>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="gridContainer">
+            </div>
+        </div>
+        <div id="categoryColumns" class="grid-cols-1 md:grid-cols-3 h-[500px]"
+            style="display: none; grid-template-columns: repeat(3, minmax(0, 1fr));">
             <div class="border-r overflow-y-auto" id="col1"></div>
             <div class="border-r overflow-y-auto bg-gray-50" id="col2"></div>
             <div class="overflow-y-auto" id="col3"></div>
@@ -282,48 +294,60 @@
     const col2 = document.getElementById("col2");
     const col3 = document.getElementById("col3");
 
+    const categoryGrid = document.getElementById("categoryGrid");
+    const categoryColumns = document.getElementById("categoryColumns");
+    const gridContainer = document.getElementById("gridContainer");
+
     const selectedText = document.getElementById("categorySelectedText");
     const selectedValue = document.getElementById("categorySelectedValue");
 
     let active1 = null;
     let active2 = null;
 
-    function openModal() {
-        modal.classList.remove("hidden");
-        document.body.style.overflow = "hidden";
-        if (active1 === null && CATEGORY_TREE.length) active1 = 0;
-        renderCol1();
-        renderCol2();
-        renderCol3();
-    }
+    const ICONS = {
+        "Детский мир": { i: "fa-baby-carriage", bg: "#fce97a" },
+        "Недвижимость": { i: "fa-key", bg: "#d0d9ff" },
+        "Транспорт": { i: "fa-car", bg: "#d7f9f4" },
+        "Работа": { i: "fa-briefcase", bg: "#ffe3de" },
+        "Животные": { i: "fa-dog", bg: "#fffae3" },
+        "Дом и сад": { i: "fa-couch", bg: "#e5eaff" },
+        "Электроника": { i: "fa-mobile-screen", bg: "#d6fcfe" },
+        "Бизнес и услуги": { i: "fa-paint-roller", bg: "#ffe5e5" },
+        "Мода и стиль": { i: "fa-shirt", bg: "#fff7db" },
+        "Хобби, отдых и спорт": { i: "fa-futbol", bg: "#e9edff" }
+    };
 
-    function closeModal() {
-        modal.classList.add("hidden");
-        document.body.style.overflow = "";
-    }
-
-    function itemRow({ label, isActive = false, hasNext = false }) {
-        return `
-            <div class="px-6 py-4 flex items-center justify-between cursor-pointer transition-colors
-                        ${isActive ? "bg-white border-l-4 border-[#002f34] font-bold text-[#002f34]" : "hover:bg-white text-gray-600"}">
-                <span class="text-[15px]">${label}</span>
-                ${hasNext ? `<i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>` : ``}
-            </div>
-        `;
-    }
-
-    function selectCategory(id, name, slug) {
-        selectedText.textContent = name;
-        selectedValue.value = id;
-        closeModal();
-        loadCategoryAttributes(slug);
+    function renderGrid() {
+        gridContainer.innerHTML = "";
+        CATEGORY_TREE.forEach((c, idx) => {
+            const config = ICONS[c.name] || { i: "fa-layer-group", bg: "#f0f0f0" };
+            const div = document.createElement("div");
+            div.className = "flex items-center gap-4 p-4 rounded-md cursor-pointer transition hover:opacity-90";
+            div.style.backgroundColor = config.bg;
+            div.innerHTML = `
+                <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm">
+                    <i class="fa-solid ${config.i} text-[#002f34] text-lg"></i>
+                </div>
+                <span class="text-[#002f34] font-medium">${c.name}</span>
+            `;
+            div.onclick = () => {
+                active1 = idx;
+                active2 = null;
+                categoryGrid.style.display = "none";
+                categoryColumns.style.display = "grid";
+                renderCol1();
+                renderCol2();
+                renderCol3();
+            };
+            gridContainer.appendChild(div);
+        });
     }
 
     function renderCol1() {
         col1.innerHTML = "";
         CATEGORY_TREE.forEach((c, idx) => {
             const row = document.createElement("div");
-            row.innerHTML = itemRow({ label: c.name, isActive: active1 === idx, hasNext: true });
+            row.innerHTML = itemRow({ label: c.name, isActive: active1 === idx, hasNext: c.children.length > 0 });
             row.onclick = () => { active1 = idx; active2 = null; renderCol1(); renderCol2(); renderCol3(); };
             col1.appendChild(row);
         });
@@ -359,12 +383,50 @@
         });
     }
 
+    function openModal() {
+        modal.classList.remove("hidden");
+        document.body.style.overflow = "hidden";
+        if (active1 === null) {
+            categoryGrid.style.display = "block";
+            categoryColumns.style.display = "none";
+            renderGrid();
+        } else {
+            categoryGrid.style.display = "none";
+            categoryColumns.style.display = "grid";
+            renderCol1();
+            renderCol2();
+            renderCol3();
+        }
+    }
+
+    function closeModal() {
+        modal.classList.add("hidden");
+        document.body.style.overflow = "";
+    }
+
     openBtn.onclick = openModal;
     closeBtn.onclick = closeModal;
     backdrop.onclick = closeModal;
 
+    function itemRow({ label, isActive = false, hasNext = false }) {
+        return `
+            <div class="px-6 py-4 flex items-center justify-between cursor-pointer transition-colors
+                        ${isActive ? "bg-white border-l-4 border-[#002f34] font-bold text-[#002f34]" : "hover:bg-white text-gray-600"}">
+                <span class="text-[15px]">${label}</span>
+                ${hasNext ? `<i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>` : ``}
+            </div>
+        `;
+    }
+
+    function selectCategory(id, name, slug) {
+        selectedText.textContent = name;
+        selectedValue.value = id;
+        closeModal();
+        loadCategoryAttributes(slug);
+    }
+
     async function loadCategoryAttributes(slug) {
-        const url = `/apps/categories/${slug}/attributes/`;
+        const url = `/categories/${slug}/attributes/`;
         try {
             const response = await fetch(url);
             const data = await response.json();
@@ -372,29 +434,69 @@
             const card = document.getElementById("attrsCard");
             container.innerHTML = "";
 
-            if (data.attributes && data.attributes.length > 0) {
+            if (Array.isArray(data) && data.length > 0) {
                 card.classList.remove("hidden");
-                data.attributes.forEach(attr => {
-                    const div = document.createElement("div");
-                    div.innerHTML = `<div class="label">${attr.label}</div>`;
-                    if (attr.type === "select") {
+
+                data.forEach(field => {
+                    const wrapper = document.createElement("div");
+                    wrapper.className = "mb-4";
+
+                    const label = document.createElement("div");
+                    label.className = "label";
+                    label.innerHTML = `${field.label} ${field.required ? '<span style="color:red;">*</span>' : ''}`;
+                    wrapper.appendChild(label);
+
+                    if (field.type === "select") {
                         const select = document.createElement("select");
-                        select.className = "input bg-white w-[420px]";
-                        select.dataset.attrName = attr.name;
-                        attr.choices.forEach(choice => {
+                        select.className = "input bg-white w-full max-w-[420px]";
+                        select.dataset.attrName = field.name;
+                        if (field.placeholder) {
+                            const defOpt = document.createElement("option");
+                            defOpt.value = ""; defOpt.textContent = field.placeholder;
+                            select.appendChild(defOpt);
+                        } else {
+                            const defOpt = document.createElement("option");
+                            defOpt.value = ""; defOpt.textContent = "Tanlang";
+                            select.appendChild(defOpt);
+                        }
+                        (field.options || []).forEach(choice => {
                             const opt = document.createElement("option");
                             opt.value = choice; opt.textContent = choice;
                             select.appendChild(opt);
                         });
-                        div.appendChild(select);
+                        if (field.required) select.required = true;
+                        wrapper.appendChild(select);
+                    } else if (field.type === "multiselect") {
+                        const grid = document.createElement("div");
+                        grid.className = "grid grid-cols-2 gap-4 mt-2 max-w-[420px]";
+                        (field.options || []).forEach(choice => {
+                            const lbl = document.createElement("label");
+                            lbl.className = "flex items-center gap-3 cursor-pointer";
+                            lbl.innerHTML = `
+                                <input type="checkbox" data-attr-name="${field.name}" value="${choice}" class="w-5 h-5 border-gray-300 rounded text-[#002f34] focus:ring-[#002f34]">
+                                <span class="text-[15px] text-gray-700">${choice}</span>
+                            `;
+                            grid.appendChild(lbl);
+                        });
+                        wrapper.appendChild(grid);
+                    } else if (field.type === "int" || field.type === "number") {
+                        const input = document.createElement("input");
+                        input.type = "number";
+                        input.className = "input w-full max-w-[420px]";
+                        if (field.placeholder) input.placeholder = field.placeholder;
+                        input.dataset.attrName = field.name;
+                        if (field.required) input.required = true;
+                        wrapper.appendChild(input);
                     } else {
                         const input = document.createElement("input");
-                        input.className = "input w-[420px]";
-                        input.placeholder = attr.label;
-                        input.dataset.attrName = attr.name;
-                        div.appendChild(input);
+                        input.type = "text";
+                        input.className = "input w-full max-w-[420px]";
+                        if (field.placeholder) input.placeholder = field.placeholder;
+                        input.dataset.attrName = field.name;
+                        if (field.required) input.required = true;
+                        wrapper.appendChild(input);
                     }
-                    container.appendChild(div);
+                    container.appendChild(wrapper);
                 });
             } else {
                 card.classList.add("hidden");
@@ -406,9 +508,19 @@
 
     document.querySelector('form').onsubmit = function () {
         const attrs = {};
-        document.querySelectorAll('#attrsContainer [data-attr-name]').forEach(el => {
-            attrs[el.dataset.attrName] = el.value;
+
+        document.querySelectorAll('#attrsContainer input:not([type="checkbox"]), #attrsContainer select').forEach(el => {
+            if (el.dataset.attrName && el.value) {
+                attrs[el.dataset.attrName] = el.value;
+            }
         });
+
+        document.querySelectorAll('#attrsContainer input[type="checkbox"]:checked').forEach(el => {
+            const name = el.dataset.attrName;
+            if (!attrs[name]) attrs[name] = [];
+            attrs[name].push(el.value);
+        });
+
         document.getElementById('attributesJson').value = JSON.stringify(attrs);
         return true;
     };

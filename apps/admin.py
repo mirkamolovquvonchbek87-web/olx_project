@@ -9,6 +9,7 @@ from apps.models.announcements import AnnouncementImage
 # Register your models here.
 @admin.register(Category)
 class CategoryModelAdmin(ModelAdmin):
+    search_fields = ['name', 'slug']
     formfield_overrides = {
         JSONField: {'widget': JSONEditorWidget},
     }
@@ -22,8 +23,12 @@ class AnnouncementImageTabularInline(TabularInline):
 
 @admin.register(Announcement)
 class AnnouncementModelAdmin(admin.ModelAdmin):
-    list_display = ['name']
-    inlines = AnnouncementImageTabularInline,
+    list_display = ['name', 'price', 'product_type', 'user']
+    search_fields = ['name', 'description']
+    inlines = [AnnouncementImageTabularInline]
+
+    class Media:
+        js = ('js/admin_announcement.js',)
 
 
 

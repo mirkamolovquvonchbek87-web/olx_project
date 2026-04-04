@@ -19,12 +19,15 @@ class Announcement(SlugBaseModel, CreatedBaseModel):
     price = PositiveIntegerField()
     description = TextField(blank=True)
     category = ForeignKey('apps.Category', CASCADE, related_name='announcements')
+    region = ForeignKey('apps.Region', CASCADE, related_name='announcements')
     district = ForeignKey('apps.District', CASCADE, related_name='announcements', null=True, blank=True)
     product_type = CharField(max_length=10, choices=AnnouncementType.choices, default=AnnouncementType.SIMPLE)
     attribute = JSONField(blank=True, null=True)
     seller_type = CharField(max_length=10,choices=SellerTypeChoices.choices, default=SellerTypeChoices.PRIVATE)
     user = ForeignKey("apps.User", CASCADE, related_name='announcements')
     views_count = PositiveIntegerField(default=0)
+    phone_count = PositiveIntegerField(default=0)
+
 
     @property
     def first_image(self):
