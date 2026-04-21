@@ -54,6 +54,17 @@ class MainView(ListView):
             ).values_list('announcement_id', flat=True)
 
         context['announcements'] = announcements
+        
+        # Recently viewed
+        recent_ids = self.request.session.get('recently_viewed', [])
+        if recent_ids:
+            # Preserve the order given by the session list via Case/When or just sorting in Python
+            recent_objects = Announcement.objects.filter(id__in=recent_ids).select_related('district__region').prefetch_related('images')
+            recent_objects_dict = {obj.id: obj for obj in recent_objects}
+            context['recently_viewed_announcements'] = [recent_objects_dict[id] for id in recent_ids if id in recent_objects_dict]
+        else:
+            context['recently_viewed_announcements'] = []
+            
         context['search_value'] = q or ""
         context['fav_ids'] = list(fav_ids)
         return context
@@ -160,6 +171,14 @@ class AnnouncementDetailView(DetailView):
         obj = super().get_object(queryset)
         obj.view_count += 1
         obj.save(update_fields=['view_count'])
+        
+        # Add to recently viewed session
+        recent = self.request.session.get('recently_viewed', [])
+        if obj.id in recent:
+            recent.remove(obj.id)
+        recent.insert(0, obj.id)
+        self.request.session['recently_viewed'] = recent[:12]
+        
         return obj
 
     def get_context_data(self, **kwargs):

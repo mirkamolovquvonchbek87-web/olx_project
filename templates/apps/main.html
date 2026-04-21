@@ -32,6 +32,13 @@
       </a>
     </div>
   </section>
+  <!-- RECENTLY VIEWED -->
+  {% if recently_viewed_announcements %}
+  <section class="mt-16 pb-12">
+    <h2 class="text-2xl font-bold text-[#002f34] mb-8">Недавно просмотренные</h2>
+    <div id="recentProductsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"></div>
+  </section>
+  {% endif %}
 </main>
 {% endblock %}
 
@@ -68,6 +75,21 @@
   {% endfor %}
   ];
 
+  const RECENT_PRODUCTS = [
+    {% for ann in recently_viewed_announcements %}
+  {
+    id: {{ ann.id }},
+    slug: "{{ ann.slug|escapejs }}",
+    title: "{{ ann.name|escapejs }}",
+    price: "{{ ann.price|escapejs }}",
+    location: "{{ ann.district.name|escapejs }}, {{ ann.district.region.name|escapejs }}",
+    date: "{{ ann.created_at|date:'Сегодня в H:i' }}",
+    img: "{% if ann.images.first %}{{ ann.images.first.image.url|escapejs }}{% endif %}",
+    isFavorited: {% if ann.id in fav_ids %} true{% else %} false{% endif %}
+  },
+  {% endfor %}
+  ];
+
   // --- State ---
   let selectedId = CATEGORIES.length ? CATEGORIES[0].id : null;
 
@@ -76,6 +98,7 @@
   const selectedCategoryName = document.getElementById("selectedCategoryName");
   const subCategoriesGrid = document.getElementById("subCategoriesGrid");
   const productsGrid = document.getElementById("productsGrid");
+  const recentProductsGrid = document.getElementById("recentProductsGrid");
 
   function getSelectedCategory() {
     return CATEGORIES.find(c => c.id === selectedId) || null;
@@ -150,6 +173,9 @@
 
   function renderProducts() {
     productsGrid.innerHTML = PRODUCTS.map(productCardHTML).join("");
+    if (recentProductsGrid) {
+      recentProductsGrid.innerHTML = RECENT_PRODUCTS.map(productCardHTML).join("");
+    }
   }
 
 
