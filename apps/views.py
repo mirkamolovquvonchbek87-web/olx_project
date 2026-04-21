@@ -9,9 +9,8 @@ from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, UpdateView, DeleteView, DetailView
 from apps.filters import AnnouncementFilterSet, AnnouncementOrderFilterSet
-from apps.models import Announcement, Category, User ,Chat
+from apps.models import Announcement, Category, User, Chat, Region, District
 from apps.forms import AnnouncementModelForm, RegisterModelForm, EmailLoginForm
-from apps.models import Announcement, Category, User
 from django.views.generic import ListView
 from apps.models.announcements import AnnouncementImage, FavouriteAnnouncement
 from root import settings
@@ -42,7 +41,11 @@ class MainView(ListView):
 
         region_id = self.request.GET.get("region")
         if region_id:
-            announcements = announcements.filter(district__region_id=region_id)
+            announcements = announcements.filter(region_id=region_id)
+
+        district_id = self.request.GET.get("district")
+        if district_id:
+            announcements = announcements.filter(district_id=district_id)
 
         fav_ids = []
         if self.request.user.is_authenticated:
@@ -59,13 +62,18 @@ class MainView(ListView):
 class AnnouncementSearchView(ListView):
     template_name = "apps/announcement-list.html"
     context_object_name = "announcements"
+    paginate_by = 40
 
     def get_queryset(self):
         queryset = Announcement.objects.all().select_related('district__region').prefetch_related('images')
         
         region_id = self.request.GET.get("region")
         if region_id:
-            queryset = queryset.filter(district__region_id=region_id)
+            queryset = queryset.filter(region_id=region_id)
+
+        district_id = self.request.GET.get("district")
+        if district_id:
+            queryset = queryset.filter(district_id=district_id)
 
         self.filterset = AnnouncementFilterSet(self.request.GET, queryset=queryset, category=None)
         return self.filterset.qs
@@ -93,14 +101,21 @@ class AnnouncementSearchView(ListView):
 class AnnouncementListView(ListView):
     template_name = "apps/announcement-list.html"
     context_object_name = "announcements"
-
-
+    paginate_by = 40
     def get_queryset(self):
         slug = self.kwargs.get("slug")
         self.category = get_object_or_404(Category, slug=slug)
         categories = self.category.get_descendants(include_self=True)
 
         queryset = Announcement.objects.filter(category__in=categories)
+        
+        region_id = self.request.GET.get("region")
+        if region_id:
+            queryset = queryset.filter(region_id=region_id)
+
+        district_id = self.request.GET.get("district")
+        if district_id:
+            queryset = queryset.filter(district_id=district_id)
 
         self.filterset = AnnouncementFilterSet(
             self.request.GET,
@@ -120,11 +135,19 @@ class AnnouncementListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        
+        fav_ids = []
+        if self.request.user.is_authenticated:
+            fav_ids = FavouriteAnnouncement.objects.filter(
+                user=self.request.user
+            ).values_list('announcement_id', flat=True)
+
         context["filter"] = self.filterset
         context["dynamic_fields"] = self.filterset.dynamic_fields
         context["top_categories"] = Category.objects.filter(parent=None)
         context["current_category"] = self.category
         context["search_value"] = self.request.GET.get("q", "")
+        context['fav_ids'] = list(fav_ids)
         return context
 
 
@@ -135,8 +158,8 @@ class AnnouncementDetailView(DetailView):
 
     def get_object(self, queryset=None):
         obj = super().get_object(queryset)
-        obj.views_count += 1
-        obj.save(update_fields=['views_count'])
+        obj.view_count += 1
+        obj.save(update_fields=['view_count'])
         return obj
 
     def get_context_data(self, **kwargs):
@@ -149,14 +172,14 @@ class AnnouncementDetailView(DetailView):
         context['user_announcements'] = Announcement.objects.filter(
             user=self.object.user
         ).exclude(id=self.object.id).select_related('district__region').prefetch_related('images')[:10]
-        
+
         fav_ids = []
         if self.request.user.is_authenticated:
             fav_ids = FavouriteAnnouncement.objects.filter(
                 user=self.request.user
             ).values_list('announcement_id', flat=True)
         context['fav_ids'] = list(fav_ids)
-        
+
         return context
 
 class CustomLoginView(LoginView):
@@ -230,6 +253,39 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
     def get_object(self, queryset=None):
         return self.request.user
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        status = self.request.GET.get('status', Announcement.Status.ACTIVE)
+        sort = self.request.GET.get('sort', 'newest')
+        
+        announcements = Announcement.objects.filter(
+            user=self.request.user,
+            status=status
+        ).select_related('category', 'district__region').prefetch_related('images')
+
+        if sort == 'price_asc':
+            announcements = announcements.order_by('price')
+        elif sort == 'price_desc':
+            announcements = announcements.order_by('-price')
+        else:
+            announcements = announcements.order_by('-created_at')
+        
+        context['announcements'] = announcements
+        context['current_status'] = status
+        context['current_sort'] = sort
+        context['Status'] = Announcement.Status
+        return context
+
+
+class UserSettingsView(LoginRequiredMixin, UpdateView):
+    model = User
+    template_name = 'apps/auth/settings.html'
+    fields = ['first_name', 'last_name', 'phone', 'avatar']
+    success_url = reverse_lazy('settings_page')
+
+    def get_object(self, queryset=None):
+        return self.request.user
+
 
 class CustomLogoutView(View):
     def get(self, request, *args, **kwargs):
@@ -246,6 +302,7 @@ class AnnouncementCreateView(LoginRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['top_categories'] = Category.objects.filter(parent=None)
+        context['regions'] = Region.objects.prefetch_related('districts').all()
         return context
 
     def form_valid(self, form):
@@ -428,7 +485,7 @@ class StartChatView(LoginRequiredMixin, View):
             return redirect('user_profile', pk=user_id)
 
         # Chatni tekshirish: agar mavjud bo‘lsa olish, yo‘q bo‘lsa yaratish
-        chat, created = Chat.objects.get_or_create_between_users(request.user, other_user)
+        chat, created = Chat.get_or_create_chat(request.user, other_user)
 
         return redirect('chat_page', chat_id=chat.id)
 

@@ -1,9 +1,10 @@
 from django.core.exceptions import ValidationError
-from django.db.models import CharField, CASCADE, ForeignKey, JSONField, TextChoices, Model, UniqueConstraint
-from django.db.models.fields import PositiveIntegerField, PositiveSmallIntegerField, TextField, DateTimeField
+from django.db.models import (
+    CharField, CASCADE, ForeignKey, JSONField, TextChoices, Model, 
+    UniqueConstraint, BooleanField, FloatField, EmailField
+)
+from django.db.models.fields import PositiveIntegerField, TextField, DateTimeField
 from apps.models.base import ImageBaseModel, SlugBaseModel, CreatedBaseModel
-
-
 
 
 class Announcement(SlugBaseModel, CreatedBaseModel):
@@ -15,18 +16,46 @@ class Announcement(SlugBaseModel, CreatedBaseModel):
         PRIVATE = "private", "PRIVATE"
         BUSINESS = "business", "BUSINESS"
 
-    name = CharField(max_length=255)
-    price = PositiveIntegerField()
-    description = TextField(blank=True)
+    class Status(TextChoices):
+        ACTIVE = 'active', 'Active'
+        UNACTIVE = 'unactive', 'Unactive'
+        UNPAID = 'unpaid', 'Unpaid'
+        MODERATED = 'moderated', 'Moderated'
+        WAITING = 'waiting', 'Waiting'
+
+    name = CharField(max_length=155)
     category = ForeignKey('apps.Category', CASCADE, related_name='announcements')
-    region = ForeignKey('apps.Region', CASCADE, related_name='announcements')
-    district = ForeignKey('apps.District', CASCADE, related_name='announcements', null=True, blank=True)
-    product_type = CharField(max_length=10, choices=AnnouncementType.choices, default=AnnouncementType.SIMPLE)
+    user = ForeignKey('apps.User', CASCADE, related_name='announcements')
+    description = TextField(blank=True) # User requested CKEditor5Field, using TextField for now
+    price_attribute = JSONField(blank=True, null=True)
     attribute = JSONField(blank=True, null=True)
-    seller_type = CharField(max_length=10,choices=SellerTypeChoices.choices, default=SellerTypeChoices.PRIVATE)
-    user = ForeignKey("apps.User", CASCADE, related_name='announcements')
-    views_count = PositiveIntegerField(default=0)
+    region = ForeignKey('apps.Region', CASCADE, related_name='announcements')
+    district = ForeignKey('apps.District', CASCADE, related_name='announcements')
+    
+    # Location
+    is_exact_locations = BooleanField(default=False)
+    lat = FloatField(blank=True, null=True)
+    lng = FloatField(blank=True, null=True)
+    
+    is_auto_extend = BooleanField(default=False)
+    is_top = BooleanField(default=False)
+    status = CharField(max_length=25, choices=Status.choices, default=Status.WAITING)
+    published_at = DateTimeField(blank=True, null=True, editable=False)
+    
+    # Contact
+    full_name = CharField(max_length=100)
+    email = EmailField(blank=True, null=True)
+    phone = CharField(max_length=15, blank=True, null=True)
+    
+    # Statistics
     phone_count = PositiveIntegerField(default=0)
+    view_count = PositiveIntegerField(default=0)
+    like_count = PositiveIntegerField(default=0)
+
+    price = PositiveIntegerField()
+    product_type = CharField(max_length=10, choices=AnnouncementType.choices, default=AnnouncementType.SIMPLE)
+    seller_type = CharField(max_length=10, choices=SellerTypeChoices.choices, default=SellerTypeChoices.PRIVATE)
+
 
 
     @property
@@ -67,5 +96,12 @@ class FavouriteAnnouncement(Model):
         self.full_clean()
         super().save(*args, **kwargs)
 
-    def str(self):
-        return f"{self.user} → {self.announcement}"
+    def __str__(self):
+        return f"{self.user} - {self.announcement}"
+
+
+class ModeratedAnnouncement(Announcement):
+    class Meta:
+        proxy = True
+        verbose_name = "Kutilayotgan E'lon"
+        verbose_name_plural = "Moderatsiyadagi E'lonlar"

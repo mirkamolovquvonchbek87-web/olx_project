@@ -29,7 +29,7 @@
         </div>
         <div class="flex items-center justify-between mt-2">
             <span class="font-bold text-sm text-[#002f34]">{{ ann.price }} сум</span>
-            <i class="{% if ann.id in fav_ids %}fa-solid heart-active{% else %}fa-regular{% endif %} fa-heart text-lg text-[#002f34] hover:text-red-500 transition-colors"
+            <i class="{% if ann.id in fav_ids %}fa-solid heart-active text-red-500{% else %}fa-regular{% endif %} fa-heart text-lg text-[#002f34] hover:text-red-500 transition-colors"
                 onclick="event.preventDefault(); toggleFavorite({{ ann.id }}, this)"></i>
         </div>
     </div>

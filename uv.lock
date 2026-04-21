@@ -253,6 +253,18 @@ wheels = [
 ]
 
 [[package]]
+name = "django-ckeditor5"
+version = "0.0.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+    { name = "django-js-asset" },
+]
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/28/33/c57d87a6cb98e7467eaa95c37556998749f40d033d9531ac40d4bb7be3aa/django_ckeditor5-0.0.4-py2.py3-none-any.whl", hash = "sha256:56725d9fde45cc7c161e6df38005949adf93fe7c44c31e808359b530c943f6c6", size = 921424, upload-time = "2019-03-18T10:47:22.103Z" },
+]
+
+[[package]]
 name = "django-filter"
 version = "25.2"
 source = { registry = "https://pypi.org/simple" }
@@ -420,6 +432,7 @@ dependencies = [
     { name = "channels-redis" },
     { name = "daphne" },
     { name = "django" },
+    { name = "django-ckeditor5" },
     { name = "django-filter" },
     { name = "django-jazzmin" },
     { name = "django-json-widget" },
@@ -442,6 +455,7 @@ requires-dist = [
     { name = "channels-redis", specifier = ">=4.3.0" },
     { name = "daphne", specifier = ">=4.2.1" },
     { name = "django", specifier = ">=6.0.2" },
+    { name = "django-ckeditor5", specifier = ">=0.0.4" },
     { name = "django-filter", specifier = ">=25.2" },
     { name = "django-jazzmin", specifier = ">=3.0.4" },
     { name = "django-json-widget", specifier = ">=2.1.1" },

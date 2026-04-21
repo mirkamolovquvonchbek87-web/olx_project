@@ -83,7 +83,7 @@
 
   function renderCategories() {
     categoriesGrid.innerHTML = "";
-    CATEGORIES.forEach(cat => {
+    CATEGORIES.forEach(cat => { 
       const isSelected = cat.id === selectedId;
       const wrapper = document.createElement("div");
       wrapper.className = "flex flex-col items-center gap-3 cursor-pointer group";
@@ -151,6 +151,7 @@
   function renderProducts() {
     productsGrid.innerHTML = PRODUCTS.map(productCardHTML).join("");
   }
+
 
   renderCategories();
   renderSelectedCategory();

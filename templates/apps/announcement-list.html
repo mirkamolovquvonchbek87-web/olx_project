@@ -115,10 +115,6 @@
 {% block content %}
 <main class="max-w-6xl mx-auto px-4 py-6">
     <section class="bg-white p-6 rounded shadow-sm mb-6">
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-2xl font-bold text-[#002f34]">Фильтры</h2>
-        </div>
-
         <form method="get" action="" class="mb-6">
             <div class="flex gap-2 mb-6">
                 <div class="flex-1 relative">
@@ -126,24 +122,23 @@
                     <input type="text" name="q" value="{{ search_value }}" placeholder="Что ищете?"
                         class="w-full border border-gray-300 rounded pl-11 pr-4 py-2 outline-none focus:border-[#002f34]">
                 </div>
-                <div class="w-64 relative">
-                    <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
-                   <select name="region"
-                        class="w-full border border-gray-300 rounded pl-11 pr-10 py-2 outline-none focus:border-[#002f34] appearance-none bg-white">
-
-                        <option value="">Вся страна</option>
-
-                        {% for region in regions %}
-                            <option value="{{ region.id }}"
-                                {% if request.GET.region|stringformat:"s" == region.id|stringformat:"s" %}
-                                    selected
-                                {% endif %}>
-                                {{ region.name }}
-                            </option>
-                        {% endfor %}
+                <div class="w-80 relative flex items-center gap-1">
+                    <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 z-10"></i>
+                    
+                    <select id="regionSelectResult" name="region" onchange="updateDistrictsResult(this.value)"
+                         class="w-1/2 border border-gray-300 rounded pl-11 pr-2 py-2 outline-none focus:border-[#002f34] appearance-none bg-white text-xs">
+                         <option value="">Вся страна</option>
+                         {% for region in regions %}
+                             <option value="{{ region.id }}" {% if request.GET.region == region.id|slugify %}selected{% endif %}>
+                                 {{ region.name }}
+                             </option>
+                         {% endfor %}
                     </select>
-                    <i
-                        class="fa-solid fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 pointer-events-none"></i>
+
+                    <select id="districtSelectResult" name="district"
+                         class="w-1/2 border border-gray-300 rounded pl-2 pr-2 py-2 outline-none focus:border-[#002f34] appearance-none bg-white text-xs">
+                         <option value="">Весь район</option>
+                    </select>
                 </div>
                 <button type="submit"
                     class="bg-[#002f34] text-white px-8 py-2 rounded font-bold hover:bg-[#004f56] transition">

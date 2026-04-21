@@ -1,41 +1,157 @@
-from django.contrib.admin import ModelAdmin, TabularInline
 from django.contrib import admin
+from django.contrib.admin import ModelAdmin, TabularInline
 from django.db.models import JSONField
 from django_json_widget.widgets import JSONEditorWidget
-from apps.models import Category, Announcement
-from apps.models.announcements import AnnouncementImage
+from apps.models import User, Category, Announcement, Chat, Message, Region, District
+from apps.models.announcements import AnnouncementImage, FavouriteAnnouncement, ModeratedAnnouncement
 
 
-# Register your models here.
+# Inlines
+class AnnouncementImageTabularInline(TabularInline):
+    model = AnnouncementImage
+    extra = 1
+
+
+class MessageTabularInline(TabularInline):
+    model = Message
+    extra = 0
+    readonly_fields = ['created_at']
+
+
+class DistrictTabularInline(TabularInline):
+    model = District
+    extra = 1
+
+
+# ModelAdmins
+@admin.register(User)
+class UserModelAdmin(ModelAdmin):
+    list_display = ['email', 'first_name', 'phone', 'balance', 'is_staff']
+    search_fields = ['email', 'first_name', 'phone']
+    list_filter = ['is_staff', 'is_active', 'is_superuser']
+    ordering = ['-date_joined']
+    
+    fieldsets = (
+        ('Shaxsiy ma\'lumotlar', {
+            'fields': ('email', 'password', 'first_name', 'last_name', 'phone', 'avatar')
+        }),
+        ('Balans', {
+            'fields': ('balance', 'bonus')
+        }),
+        ('Huquqlar va Status', {
+            'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')
+        }),
+        ('Muhim sanalar', {
+            'fields': ('last_login', 'date_joined')
+        }),
+    )
+
+
 @admin.register(Category)
 class CategoryModelAdmin(ModelAdmin):
+    list_display = ['name', 'slug', 'parent']
     search_fields = ['name', 'slug']
+    list_filter = ['parent']
+    prepopulated_fields = {'slug': ('name',)}
     formfield_overrides = {
         JSONField: {'widget': JSONEditorWidget},
     }
 
 
-class AnnouncementImageTabularInline(TabularInline):
-    model = AnnouncementImage
-    min_num = 1
-    extra = 0
-
-
 @admin.register(Announcement)
-class AnnouncementModelAdmin(admin.ModelAdmin):
-    list_display = ['name', 'price', 'product_type', 'user']
-    search_fields = ['name', 'description']
+class AnnouncementModelAdmin(ModelAdmin):
+    list_display = ['name', 'price', 'status', 'user', 'category', 'view_count', 'created_at']
+    search_fields = ['name', 'description', 'full_name', 'email', 'phone']
+    list_filter = ['status', 'is_top', 'category', 'region', 'product_type', 'seller_type']
+    readonly_fields = ['view_count', 'phone_count', 'like_count', 'created_at', 'updated_at', 'slug', 'published_at']
     inlines = [AnnouncementImageTabularInline]
+    
+    fieldsets = (
+        ('Asosiy Ma\'lumotlar', {
+            'fields': ('name', 'slug', 'description', 'category', 'user', 'status', 'published_at')
+        }),
+        ('Narx va Atributlar', {
+            'fields': ('price', 'price_attribute', 'attribute', 'product_type', 'seller_type')
+        }),
+        ('Joylashuv', {
+            'fields': ('region', 'district', 'is_exact_locations', 'lat', 'lng')
+        }),
+        ('Aloqa Ma\'lumotlari', {
+            'fields': ('full_name', 'email', 'phone')
+        }),
+        ('Promouter (Top/Auto)', {
+            'fields': ('is_top', 'is_auto_extend')
+        }),
+        ('Statistika', {
+            'fields': ('view_count', 'phone_count', 'like_count', 'created_at', 'updated_at')
+        }),
+    )
 
-    class Media:
-        js = ('js/admin_announcement.js',)
+    def save_model(self, request, obj, form, change):
+        if change:
+            old_obj = Announcement.objects.get(pk=obj.pk)
+            if old_obj.status != obj.status and obj.status == Announcement.Status.ACTIVE:
+                from django.utils import timezone
+                obj.published_at = timezone.now()
+        super().save_model(request, obj, form, change)
 
 
+@admin.register(ModeratedAnnouncement)
+class ModeratedAnnouncementAdmin(AnnouncementModelAdmin):
+    list_display = ['name', 'price', 'status', 'user', 'category', 'created_at']
+    actions = ['make_active']
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(
+            status__in=[Announcement.Status.WAITING, Announcement.Status.MODERATED]
+        )
+
+    @admin.action(description="Tanlangan e'lonlarni Active (Faol) qilish")
+    def make_active(self, request, queryset):
+        from django.utils import timezone
+        updated = queryset.update(status=Announcement.Status.ACTIVE, published_at=timezone.now())
+        self.message_user(request, f"{updated} ta e'lon faollashtirildi.")
+
+
+@admin.register(Chat)
+class ChatModelAdmin(ModelAdmin):
+    list_display = ['user1', 'user2', 'announcement', 'created_at']
+    search_fields = ['user1__email', 'user2__email', 'announcement__name']
+    inlines = [MessageTabularInline]
+
+
+@admin.register(Message)
+class MessageModelAdmin(ModelAdmin):
+    list_display = ['from_user', 'chat', 'is_read', 'created_at']
+    search_fields = ['message', 'from_user__email']
+    list_filter = ['is_read', 'created_at']
+
+
+@admin.register(Region)
+class RegionModelAdmin(ModelAdmin):
+    list_display = ['name']
+    search_fields = ['name']
+    inlines = [DistrictTabularInline]
+
+
+@admin.register(District)
+class DistrictModelAdmin(ModelAdmin):
+    list_display = ['name', 'region']
+    search_fields = ['name']
+    list_filter = ['region']
+
+
+@admin.register(FavouriteAnnouncement)
+class FavouriteAnnouncementModelAdmin(ModelAdmin):
+    list_display = ['user', 'announcement', 'created_at']
+    search_fields = ['user__email', 'announcement__name']
+    list_filter = ['created_at']
 
 
 @admin.register(AnnouncementImage)
-class AnnouncementImagesModelAdmin(ModelAdmin):
-    pass
+class AnnouncementImageModelAdmin(ModelAdmin):
+    list_display = ['id', 'product', 'image']
+    list_filter = ['product']
 
 
 

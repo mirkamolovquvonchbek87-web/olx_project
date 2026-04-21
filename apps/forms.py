@@ -12,7 +12,11 @@ class AnnouncementModelForm(ModelForm):
 
     class Meta:
         model = Announcement
-        fields = ['name', 'description', 'category', 'price']
+        fields = [
+            'name', 'description', 'category', 'price', 
+            'region', 'district', 'seller_type', 
+            'full_name', 'email', 'phone'
+        ]
 
     def clean_attribute(self):
         raw_attr = self.cleaned_data.get("attribute")
@@ -32,6 +36,10 @@ class AnnouncementModelForm(ModelForm):
 
         if not seller_type:
             cleaned_data["seller_type"] = "private"
+            
+        phone = cleaned_data.get("phone")
+        if phone:
+            cleaned_data["phone"] = phone.replace(" ", "")
 
         return cleaned_data
 

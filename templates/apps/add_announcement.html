@@ -1,4 +1,4 @@
-+{% extends 'apps/base.html' %}
+{% extends 'apps/base.html' %}
 {% load static %}
 
 {% block title %}Создать объявление - OLX Clone{% endblock %}
@@ -114,6 +114,21 @@
     {% csrf_token %}
     <div class="wrap">
         <h1 class="text-[38px] font-bold mb-6">Создать объявление</h1>
+        {% if form.errors %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
+            <strong class="font-bold">Пожалуйста, исправьте следующие ошибки:</strong>
+            <ul class="list-disc ml-5 mt-2">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
 
         <!-- CARD: DETAILS -->
         <section class="card p-8 mb-5">
@@ -164,7 +179,7 @@
                 <div id="photoCounter" class="text-sm text-gray-500 font-bold">0/8</div>
             </div>
 
-            <input id="filePicker" type="file" accept="image/*" multiple class="hidden" />
+            <input id="filePicker" name="images" type="file" accept="image/*" multiple class="hidden" />
 
             <div id="photosGrid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-4">
                 <button type="button" id="addPhotoBtn"
@@ -190,32 +205,42 @@
         <!-- CARD: LOCATION -->
         <section class="card p-8 mb-5">
             <div class="label">Местоположение *</div>
-            <div class="w-[420px]">
-                <select name="district" class="input bg-white" required>
-                    <option value="">Выберите район</option>
-                    {% for region in regions %}
-                    <optgroup label="{{ region.name }}">
-                        {% for district in region.districts.all %}
-                        <option value="{{ district.id }}">{{ district.name }}</option>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-[860px]">
+                <div>
+                    <div class="text-xs text-gray-500 mb-1 uppercase font-bold">Область</div>
+                    <select id="regionSelect" name="region" class="input bg-white" required
+                        onchange="updateDistricts(this.value)">
+                        <option value="">Выберите область</option>
+                        {% for region in regions %}
+                        <option value="{{ region.id }}">{{ region.name }}</option>
                         {% endfor %}
-                    </optgroup>
-                    {% endfor %}
-                </select>
+                    </select>
+                </div>
+                <div>
+                    <div class="text-xs text-gray-500 mb-1 uppercase font-bold">Район / Город</div>
+                    <select id="districtSelect" name="district" class="input bg-white" required>
+                        <option value="">Сначала выберите область</option>
+                    </select>
+                </div>
             </div>
         </section>
 
-        <!-- CARD: CONTACT -->
         <section class="card p-8 mb-5">
             <h2 class="text-[22px] font-bold mb-5">Контактная информация</h2>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div>
                     <div class="label">Контактное лицо *</div>
-                    <input class="input" name="contact_name" value="{{ user.get_full_name|default:user.username }}"
+                    <input class="input" name="full_name" value="{{ user.get_full_name|default:user.username }}"
                         required />
                 </div>
                 <div>
+                    <div class="label">Номер телефона *</div>
+                    <input class="input" name="phone" value="{{ user.phone|default:'' }}"
+                        placeholder="+998 90 123 45 67" required />
+                </div>
+                <div>
                     <div class="label">Email-адрес</div>
-                    <input class="input bg-gray-50 text-gray-500" value="{{ user.email }}" readonly />
+                    <input class="input" name="email" value="{{ user.email }}" />
                 </div>
             </div>
         </section>

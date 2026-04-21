@@ -1,0 +1,277 @@
+{% extends 'apps/base.html' %}
+{% load static %}
+
+{% block title %}Настройки — OLX Clone{% endblock %}
+
+{% block extra_head %}
+<style>
+    :root {
+        --olx-dark: #002f34;
+        --bg: #f2f4f5;
+        --line: #d8dfe0;
+    }
+
+    .profile-page {
+        background: linear-gradient(to bottom, #fff 0 300px, var(--bg) 300px 100%);
+        min-height: calc(100vh - 64px);
+    }
+
+    .container-custom {
+        width: min(1140px, calc(100% - 48px));
+        margin: 0 auto;
+    }
+
+    .top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 28px 0 16px;
+    }
+
+    .profile-title {
+        font-size: 52px;
+        font-weight: 700;
+        color: var(--olx-dark);
+    }
+
+    .main-tabs-profile {
+        display: flex;
+        gap: 36px;
+        margin-top: 28px;
+        border-bottom: 1px solid #eef1f2;
+    }
+
+    .main-tab-profile {
+        position: relative;
+        color: #6c868a;
+        padding: 10px 0 14px;
+        font-size: 15px;
+        text-decoration: none;
+    }
+
+    .main-tab-profile.active {
+        color: var(--olx-dark);
+        font-weight: 700;
+    }
+
+    .main-tab-profile.active::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -1px;
+        height: 3px;
+        background: var(--olx-dark);
+    }
+
+    .settings-list {
+        margin-top: 30px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        padding-bottom: 50px;
+    }
+
+    .settings-item {
+        background: #fff;
+        border-radius: 4px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+
+    .settings-header {
+        padding: 20px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .settings-header:hover {
+        background: #f8fafb;
+    }
+
+    .settings-header h3 {
+        font-size: 16px;
+        color: var(--olx-dark);
+        font-weight: 500;
+    }
+
+    .settings-content {
+        padding: 0 24px 24px;
+        display: none;
+        border-top: 1px solid #f2f4f5;
+    }
+
+    .settings-item.open .settings-content {
+        display: block;
+    }
+
+    .settings-item.open .chevron {
+        transform: rotate(180deg);
+    }
+
+    .chevron {
+        transition: transform 0.3s;
+        color: var(--olx-dark);
+    }
+
+    .form-group {
+        margin-top: 16px;
+    }
+
+    .form-label {
+        display: block;
+        font-size: 14px;
+        color: var(--olx-dark);
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+
+    .form-input {
+        width: 100%;
+        height: 48px;
+        padding: 0 16px;
+        border: 1px solid #b7c6c8;
+        border-radius: 4px;
+        background: #f2f4f5;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+    .form-input:focus {
+        border-color: var(--olx-dark);
+    }
+
+    .save-btn {
+        margin-top: 24px;
+        background: var(--olx-dark);
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 12px 24px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <div class="container-custom">
+        <div class="top-row">
+            <h1 class="profile-title">Настройки</h1>
+        </div>
+
+        <div class="main-tabs-profile">
+            <a href="{% url 'profile_page' %}" class="main-tab-profile">Объявления</a>
+            <a href="{% url 'user_chats_page' %}" class="main-tab-profile">Чат</a>
+            <a href="#" class="main-tab-profile">Платежи и счёт OLX</a>
+            <a href="#" class="main-tab-profile">Ищу работу</a>
+            <a href="#" class="main-tab-profile active">Настройки</a>
+        </div>
+
+        <div class="settings-list">
+            <!-- Edit Profile -->
+            <div class="settings-item">
+                <div class="settings-header" onclick="this.parentElement.classList.toggle('open')">
+                    <h3>Редактировать профиль</h3>
+                    <i class="fa-solid fa-chevron-down chevron"></i>
+                </div>
+                <div class="settings-content">
+                    <form method="post" action="{% url 'profile_page' %}" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="form-group">
+                                <label class="form-label">Имя</label>
+                                <input type="text" name="first_name" value="{{ user.first_name }}" class="form-input">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Фамилия</label>
+                                <input type="text" name="last_name" value="{{ user.last_name }}" class="form-input">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Аватар</label>
+                            <input type="file" name="avatar" class="form-input pt-2">
+                        </div>
+                        <button type="submit" class="save-btn">Сохранить изменения</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Change Password -->
+            <div class="settings-item">
+                <div class="settings-header" onclick="this.parentElement.classList.toggle('open')">
+                    <h3>Изменить пароль</h3>
+                    <i class="fa-solid fa-chevron-down chevron"></i>
+                </div>
+                <div class="settings-content">
+                    <form method="post">
+                        <div class="form-group">
+                            <label class="form-label">Текущий пароль</label>
+                            <input type="password" class="form-input">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Новый пароль</label>
+                            <input type="password" class="form-input">
+                        </div>
+                        <button type="submit" class="save-btn">Сменить пароль</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Email -->
+            <div class="settings-item">
+                <div class="settings-header" onclick="this.parentElement.classList.toggle('open')">
+                    <h3>Изменить электронную почту</h3>
+                    <i class="fa-solid fa-chevron-down chevron"></i>
+                </div>
+                <div class="settings-content">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" value="{{ user.email }}" class="form-input" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Phone -->
+            <div class="settings-item">
+                <div class="settings-header" onclick="this.parentElement.classList.toggle('open')">
+                    <h3>Изменить номер телефона</h3>
+                    <i class="fa-solid fa-chevron-down chevron"></i>
+                </div>
+                <div class="settings-content">
+                    <div class="form-group">
+                        <label class="form-label">Телефон</label>
+                        <input type="text" value="{{ user.phone|default:'' }}" class="form-input">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="settings-item">
+                <div class="settings-header" onclick="this.parentElement.classList.toggle('open')">
+                    <h3>Уведомления</h3>
+                    <i class="fa-solid fa-chevron-down chevron"></i>
+                </div>
+                <div class="settings-content">
+                    <p class="text-sm text-gray-500 py-4">Настройки уведомлений скоро будут доступны.</p>
+                </div>
+            </div>
+
+            <!-- Account Management -->
+            <div class="settings-item">
+                <div class="settings-header" onclick="this.parentElement.classList.toggle('open')">
+                    <h3>Управление аккаунтом</h3>
+                    <i class="fa-solid fa-chevron-down chevron"></i>
+                </div>
+                <div class="settings-content">
+                    <button class="text-red-600 font-bold text-sm hover:underline mt-4">Удалить аккаунт</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

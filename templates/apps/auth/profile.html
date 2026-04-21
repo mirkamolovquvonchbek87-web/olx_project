@@ -363,7 +363,7 @@
             <a href="{% url 'user_chats_page' %}" class="main-tab-profile">Чат</a>
             <a href="#" class="main-tab-profile">Платежи и счёт OLX</a>
             <a href="#" class="main-tab-profile">Ищу работу</a>
-            <a href="#" class="main-tab-profile">Настройки</a>
+            <a href="{% url 'settings_page' %}" class="main-tab-profile">Настройки</a>
         </div>
     </div>
 
@@ -372,11 +372,11 @@
 
             <div class="sub-row-profile">
                 <div class="sub-tabs-profile">
-                    <a href="#" class="sub-tab-profile active">Активные</a>
-                    <a href="#" class="sub-tab-profile">Ожидающие</a>
-                    <a href="#" class="sub-tab-profile">Неоплаченные</a>
-                    <a href="#" class="sub-tab-profile">Неактивные</a>
-                    <a href="#" class="sub-tab-profile">Отклоненные</a>
+                    <a href="?status={{ Status.ACTIVE }}" class="sub-tab-profile {% if current_status == Status.ACTIVE %}active{% endif %}">Активные</a>
+                    <a href="?status={{ Status.WAITING }}" class="sub-tab-profile {% if current_status == Status.WAITING %}active{% endif %}">Ожидающие</a>
+                    <a href="?status={{ Status.UNPAID }}" class="sub-tab-profile {% if current_status == Status.UNPAID %}active{% endif %}">Неоплаченные</a>
+                    <a href="?status={{ Status.UNACTIVE }}" class="sub-tab-profile {% if current_status == Status.UNACTIVE %}active{% endif %}">Неактивные</a>
+                    <a href="?status={{ Status.MODERATED }}" class="sub-tab-profile {% if current_status == Status.MODERATED %}active{% endif %}">Отклоненные</a>
                 </div>
                 <a href="#" class="limit-link">Просмотреть лимит бесплатных объявлений</a>
             </div>
@@ -389,7 +389,7 @@
 
                 <div class="control-profile search-box-profile">
                     <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
-                    <div class="text-sm text-gray-500">Искать по заголовку, ID или местоположению</div>
+                    <input type="text" placeholder="Искать по заголовку, ID или местоположению" class="w-full bg-transparent outline-none text-sm text-gray-600">
                 </div>
 
                 <div class="control-profile select-profile">
@@ -397,42 +397,59 @@
                     <span class="chev-profile"></span>
                 </div>
 
-                <div class="control-profile select-profile">
-                    <span>Самые новые</span>
+                <div class="control-profile select-profile relative group">
+                    <select onchange="location.href='?status={{ current_status }}&sort=' + this.value" class="absolute inset-0 opacity-0 cursor-pointer w-full z-10">
+                        <option value="newest" {% if current_sort == 'newest' %}selected{% endif %}>Самые новые</option>
+                        <option value="price_asc" {% if current_sort == 'price_asc' %}selected{% endif %}>Дешевые</option>
+                        <option value="price_desc" {% if current_sort == 'price_desc' %}selected{% endif %}>Дорогие</option>
+                    </select>
+                    <span>
+                        {% if current_sort == 'newest' %}Самые новые
+                        {% elif current_sort == 'price_asc' %}Дешевые
+                        {% elif current_sort == 'price_desc' %}Дорогие
+                        {% endif %}
+                    </span>
                     <span class="chev-profile"></span>
                 </div>
             </div>
 
-            <div class="counter-profile">Показано 0 - 0 из 0 объявлений</div>
+            <div class="counter-profile">Показано {{ announcements.count }} из {{ announcements.count }} объявлений</div>
             <div class="divider-profile"></div>
 
-            <div class="empty-state-profile">
-                <svg class="empty-illustration-profile" viewBox="0 0 220 170" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="75" cy="115" r="24" fill="#002f34" />
-                    <circle cx="75" cy="115" r="10" fill="#f2f4f5" />
-                    <circle cx="140" cy="120" r="26" fill="#002f34" />
-                    <circle cx="140" cy="120" r="11" fill="#f2f4f5" />
-                    <path d="M75 115 L105 98 L117 130 L90 130 Z" fill="none" stroke="#3a77ff" stroke-width="6"
-                        stroke-linejoin="round" />
-                    <path d="M105 98 L135 108" fill="none" stroke="#3a77ff" stroke-width="6" stroke-linecap="round" />
-                    <path d="M75 115 L96 92" fill="none" stroke="#3a77ff" stroke-width="6" stroke-linecap="round" />
-                    <path d="M96 92 L109 93" fill="none" stroke="#3a77ff" stroke-width="6" stroke-linecap="round" />
-                    <path d="M111 132 L126 107" fill="none" stroke="#3a77ff" stroke-width="6" stroke-linecap="round" />
-                    <path d="M152 63 L187 57 L194 109 L165 120 Z" fill="#23e5db" />
-                    <path d="M152 63 L165 120 L145 102 L144 73 Z" fill="#c6efea" />
-                    <circle cx="106" cy="72" r="7" fill="#002f34" />
-                    <path d="M106 79 L100 92" stroke="#002f34" stroke-width="5" stroke-linecap="round" />
-                    <circle cx="111" cy="42" r="3.2" fill="#002f34" />
-                    <circle cx="124" cy="44" r="3.2" fill="#002f34" />
-                </svg>
-                <p class="text-xl font-bold mb-2">Активные объявления отображаются здесь до истечения их срока</p>
-                <p class="text-gray-500 mb-6">Эти объявления видны всем. Срок их действия — 30 дней с момента активации.
-                </p>
-                <a href="{% url 'add_announcement_page' %}"
-                    class="bg-[#002f34] text-white px-8 py-3 rounded font-bold hover:bg-[#004d55] transition inline-block">
-                    Создать объявление
-                </a>
-            </div>
+            {% if announcements %}
+                <div class="grid grid-cols-1 gap-4 mt-6">
+                    {% for ann in announcements %}
+                        {% include 'apps/includes/profile_product_card.html' with ann=ann %}
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state-profile">
+                    <svg class="empty-illustration-profile" viewBox="0 0 220 170" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="75" cy="115" r="24" fill="#002f34" />
+                        <circle cx="75" cy="115" r="10" fill="#f2f4f5" />
+                        <circle cx="140" cy="120" r="26" fill="#002f34" />
+                        <circle cx="140" cy="120" r="11" fill="#f2f4f5" />
+                        <path d="M75 115 L105 98 L117 130 L90 130 Z" fill="none" stroke="#3a77ff" stroke-width="6"
+                            stroke-linejoin="round" />
+                        <path d="M105 98 L135 108" fill="none" stroke="#3a77ff" stroke-width="6" stroke-linecap="round" />
+                        <path d="M75 115 L96 92" fill="none" stroke="#3a77ff" stroke-width="6" stroke-linecap="round" />
+                        <path d="M96 92 L109 93" fill="none" stroke="#3a77ff" stroke-width="6" stroke-linecap="round" />
+                        <path d="M111 132 L126 107" fill="none" stroke="#3a77ff" stroke-width="6" stroke-linecap="round" />
+                        <path d="M152 63 L187 57 L194 109 L165 120 Z" fill="#23e5db" />
+                        <path d="M152 63 L165 120 L145 102 L144 73 Z" fill="#c6efea" />
+                        <circle cx="106" cy="72" r="7" fill="#002f34" />
+                        <path d="M106 79 L100 92" stroke="#002f34" stroke-width="5" stroke-linecap="round" />
+                        <circle cx="111" cy="42" r="3.2" fill="#002f34" />
+                        <circle cx="124" cy="44" r="3.2" fill="#002f34" />
+                    </svg>
+                    <p class="text-xl font-bold mb-2">Здесь пока пусто</p>
+                    <p class="text-gray-500 mb-6">У вас нет объявлений в этом разделе.</p>
+                    <a href="{% url 'add_announcement_page' %}"
+                        class="bg-[#002f34] text-white px-8 py-3 rounded font-bold hover:bg-[#004d55] transition inline-block">
+                        Создать объявление
+                    </a>
+                </div>
+            {% endif %}
         </div>
     </div>
 </div>

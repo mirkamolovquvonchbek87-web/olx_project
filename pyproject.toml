@@ -8,6 +8,7 @@ dependencies = [
     "channels-redis>=4.3.0",
     "daphne>=4.2.1",
     "django>=6.0.2",
+    "django-ckeditor5>=0.0.4",
     "django-filter>=25.2",
     "django-jazzmin>=3.0.4",
     "django-json-widget>=2.1.1",
