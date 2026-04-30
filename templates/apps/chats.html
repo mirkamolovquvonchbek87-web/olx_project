@@ -17,9 +17,16 @@
 
     /* Fixed height layout for chat */
     .chat-layout {
-        height: calc(100vh - 64px);
-        /* Header height subtracted */
+        height: calc(100vh - 128px);
         overflow: hidden;
+    }
+    .container-custom {
+        max-width: 1000px;
+        width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 1rem;
+        padding-right: 1rem;
     }
 </style>
 {% endblock %}
@@ -27,116 +34,87 @@
 {% block search_section %}{% endblock %}
 
 {% block content %}
-<div class="chat-layout flex flex-col">
+<div class="chat-layout flex flex-col h-screen overflow-hidden">
     <!-- SUB-HEADER (Navigation) -->
-    <nav class="bg-white border-b border-gray-200 flex-shrink-0 hidden md:block z-10">
-        <div class="max-w-6xl mx-auto px-4 flex gap-6 text-[13px] font-semibold text-gray-500 overflow-x-auto">
-            <a href="{% url 'profile_page' %}" class="py-4 hover:text-[#002f34]">Объявления</a>
-            <a href="#" class="py-4 hover:text-[#002f34]">Панель Работодателя</a>
-            <a href="{% url 'user_chats_page' %}" class="py-4 border-b-2 border-[#002f34] text-[#002f34]">Чат</a>
-            <a href="#" class="py-4 hover:text-[#002f34]">Платежи и счет OLX</a>
-            <a href="#" class="py-4 hover:text-[#002f34]">Ищу работу</a>
-            <a href="#" class="py-4 hover:text-[#002f34]">Настройки</a>
-            <a href="#" class="py-4 hover:text-[#002f34]">Мой бизнес</a>
+    <nav class="bg-white border-b border-[#eef1f2] flex-shrink-0 hidden md:block z-20">
+        <div class="container-custom flex gap-8 text-[14px] font-bold text-[#406367]">
+            <a href="{% url 'profile_page' %}" class="py-5 hover:text-[#002f34] transition">Объявления</a>
+            <a href="{% url 'user_chats_page' %}" class="py-5 border-b-4 border-[#002f34] text-[#002f34]">Сообщения</a>
+            <a href="{% url 'payment_history_page' %}" class="py-5 hover:text-[#002f34] transition">Платежи и счет OLX</a>
+            <a href="{% url 'settings_page' %}" class="py-5 hover:text-[#002f34] transition font-bold">Настройки</a>
         </div>
     </nav>
 
     <!-- MAIN LAYOUT -->
-    <main class="flex-1 w-full max-w-6xl mx-auto flex bg-[#f2f4f5] overflow-hidden pt-6 pb-6 px-4">
+    <main class="flex-1 w-full bg-white overflow-hidden flex justify-center">
+        <div class="container-custom flex gap-6 h-full py-6">
 
-        <!-- LEFT SIDEBAR -->
-        <aside class="w-full md:w-[350px] flex flex-col mr-6 bg-transparent h-full">
+            <!-- LEFT SIDEBAR -->
+            <aside class="w-[380px] flex flex-col shrink-0 h-full overflow-hidden">
+                <div class="bg-white rounded-md shadow-sm flex flex-col h-full border border-[#eef1f2] overflow-hidden">
+                    
+                    <!-- Filters & Tabs -->
+                    <div class="p-6 border-b border-[#f2f4f5]">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-2xl font-bold text-[#002f34]">Сообщения</h2>
+                            <div class="flex gap-2">
+                                <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 text-[#002f34] transition">
+                                    <i class="fa-regular fa-bookmark"></i>
+                                </button>
+                                <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 text-[#002f34] transition">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
 
-            <!-- Top controls -->
-            <div class="bg-white rounded shadow-sm mb-4">
-                <div class="flex justify-around py-3 border-b border-gray-100 text-[13px] font-semibold text-[#002f34]">
-                    <a href="#" class="flex items-center gap-2 hover:text-cyan-600"><i
-                            class="fa-regular fa-bookmark"></i> Сохраненные</a>
-                    <a href="#" class="flex items-center gap-2 hover:text-cyan-600"><i
-                            class="fa-regular fa-trash-can"></i> Корзина</a>
-                </div>
-            </div>
+                        <!-- All / Unread Tabs -->
+                        <div class="flex border-b-2 border-gray-100 gap-6 mb-6">
+                            <a href="?type={{ current_type }}&unread=0" class="pb-3 text-sm font-bold transition-all border-b-2 {% if current_unread == '0' %}border-[#002f34] text-[#002f34]{% else %}border-transparent text-[#7f979a] hover:text-[#002f34]{% endif %}">Все</a>
+                            <a href="?type={{ current_type }}&unread=1" class="pb-3 text-sm font-bold transition-all border-b-2 {% if current_unread == '1' %}border-[#002f34] text-[#002f34]{% else %}border-transparent text-[#7f979a] hover:text-[#002f34]{% endif %}">Непрочитанные</a>
+                        </div>
 
-            <div class="bg-white rounded shadow-sm flex-1 flex flex-col overflow-hidden">
-
-                <!-- Promo Banner -->
-                <div class="m-4 bg-[#e8f0fe] rounded p-4 text-center cursor-pointer hover:bg-[#dbe6fd] transition">
-                    <div class="flex items-center justify-center gap-2 mb-2 text-[#4285f4]">
-                        <i class="fa-solid fa-briefcase text-xl"></i>
-                    </div>
-                    <p class="text-sm font-bold text-[#002f34] leading-tight mb-2">Ищете сообщения от кандидатов о ваших
-                        вакансиях?</p>
-                    <p class="text-xs text-[#002f34] font-bold underline">Перейти в Панель работодателя</p>
-                </div>
-
-                <!-- Tabs -->
-                <div class="px-4 pb-4 flex gap-2">
-                    <button
-                        class="flex-1 bg-white border border-gray-200 text-gray-500 font-bold py-2 rounded text-xs hover:bg-gray-50 transition">Покупаю</button>
-                    <button
-                        class="flex-1 bg-[#13d0a1] text-white font-bold py-2 rounded text-xs hover:bg-[#10b88f] transition shadow-sm">Продаю</button>
-                </div>
-
-                <!-- Scrollable Chats List -->
-                <div class="flex-1 overflow-y-auto scrollbar-hide border-t border-gray-100">
-
-                    <div
-                        class="px-4 py-3 text-[10px] font-bold text-[#002f34] uppercase tracking-wider bg-gray-50 border-b border-gray-100">
-                        Непрочитанные</div>
-                    <div class="p-6 flex flex-col items-center justify-center text-center border-b border-gray-100">
-                        <span class="text-2xl mb-2">🎉</span>
-                        <p class="text-sm font-bold text-[#002f34]">Вы все прочитали!</p>
+                        <!-- Buy / Sell Toggles -->
+                        <div class="flex p-1 bg-[#f2f4f5] rounded-md">
+                            <a href="?type=buying&unread={{ current_unread }}" class="flex-1 py-1.5 text-center text-xs font-bold rounded-md transition {% if current_type == 'buying' %}bg-white text-[#002f34] shadow-sm{% else %}text-[#7f979a] hover:text-[#002f34]{% endif %}">Покупаю</a>
+                            <a href="?type=selling&unread={{ current_unread }}" class="flex-1 py-1.5 text-center text-xs font-bold rounded-md transition {% if current_type == 'selling' %}bg-white text-[#002f34] shadow-sm{% else %}text-[#7f979a] hover:text-[#002f34]{% endif %}">Продаю</a>
+                            <a href="?type=all&unread={{ current_unread }}" class="flex-1 py-1.5 text-center text-xs font-bold rounded-md transition {% if current_type == 'all' %}bg-white text-[#002f34] shadow-sm{% else %}text-[#7f979a] hover:text-[#002f34]{% endif %}">Все</a>
+                        </div>
                     </div>
 
-                    <div
-                        class="px-4 py-3 text-[10px] font-bold text-[#002f34] uppercase tracking-wider bg-gray-50 border-b border-gray-100">
-                        Прочитанные</div>
-
-                    {% if not chats %}
-                    <div class="p-8 flex flex-col items-center justify-center text-center">
-                        <p class="text-sm text-gray-500 font-semibold mb-2">Нет сообщений</p>
-                    </div>
-                    {% else %}
-                    <div class="divide-y divide-gray-100">
+                    <!-- Chats List -->
+                    <div class="flex-1 overflow-y-auto scrollbar-hide divide-y divide-[#f2f4f5]">
                         {% for chat in chats %}
-                        {% if chat.user1 == request.user %}
-                        {% with other_user=chat.user2 %}
-                        {% include "apps/includes/chat_item.html" with chat=chat other_user=other_user %}
-                        {% endwith %}
-                        {% else %}
-                        {% with other_user=chat.user1 %}
-                        {% include "apps/includes/chat_item.html" with chat=chat other_user=other_user %}
-                        {% endwith %}
-                        {% endif %}
+                            {% include "apps/includes/chat_item.html" with chat=chat other_user=chat.user2 %}
+                        {% empty %}
+                        <div class="p-12 text-center">
+                            <div class="w-16 h-16 bg-[#f2f4f5] rounded-full flex items-center justify-center mx-auto mb-4">
+                                <i class="fa-regular fa-comment-dots text-2xl text-[#7f979a]"></i>
+                            </div>
+                            <p class="font-bold text-[#002f34] text-sm mb-1">Нет сообщений</p>
+                            <p class="text-[12px] text-[#7f979a]">У вас нет активных переписок в этом разделе.</p>
+                        </div>
                         {% endfor %}
                     </div>
-                    {% endif %}
                 </div>
-            </div>
-        </aside>
+            </aside>
 
-        <!-- RIGHT MAIN AREA -->
-        <section
-            class="hidden md:flex flex-1 bg-white rounded shadow-sm items-center justify-center flex-col h-full border border-transparent">
-            <div class="w-48 h-48 mb-6 relative">
-                <div
-                    class="absolute inset-0 bg-[#3a77ff] rounded-full flex items-center justify-center opacity-10 blur-2xl transform scale-150">
+            <!-- RIGHT MAIN AREA -->
+            <section class="flex-1 bg-white rounded-md shadow-sm border border-[#eef1f2] flex flex-col h-full overflow-hidden">
+                <div class="flex-1 flex flex-col items-center justify-center p-12 text-center bg-[#fcfdfd]">
+                    <div class="relative mb-12 flex items-center justify-center">
+                        <div class="absolute w-40 h-40 bg-[#23e5db] opacity-10 blur-3xl rounded-full scale-110"></div>
+                        <div class="relative w-32 h-32 bg-[#f2f4f5] rounded-full flex items-center justify-center text-[#7f979a] border-4 border-white shadow-sm">
+                            <i class="fa-regular fa-comments text-5xl"></i>
+                        </div>
+                    </div>
+                    <h3 class="text-2xl font-black text-[#002f34] mb-3">Выберите сообщение</h3>
+                    <p class="text-[#7f979a] text-[15px] max-w-[320px] mx-auto leading-relaxed">
+                        Нажмите на любой диалог слева, чтобы начать общение или просмотреть историю переписки.
+                    </p>
                 </div>
-                <svg viewBox="0 0 200 200" class="w-full h-full text-[#3a77ff] relative drop-shadow-lg"
-                    fill="currentColor">
-                    <path
-                        d="M129.5 45H70.5C48.2 45 30 63.2 30 85.5V108.5C30 130.8 48.2 149 70.5 149H75.1L82.6 164C86.5 171.8 97.4 171.8 101.3 164L108.8 149H129.5C151.8 149 170 130.8 170 108.5V85.5C170 63.2 151.8 45 129.5 45Z"
-                        fill="#c3d4ff" />
-                    <circle cx="75" cy="95" r="10" fill="#002f34" />
-                    <circle cx="120" cy="95" r="10" fill="#002f34" />
-                    <path d="M78 115 C 88 125, 107 125, 117 115" stroke="#002f34" stroke-width="8"
-                        stroke-linecap="round" fill="none" />
-                    <path d="M120 70 L 140 70" stroke="#002f34" stroke-width="6" stroke-linecap="round" />
-                </svg>
-            </div>
-            <p class="text-[#002f34] text-[15px] font-semibold">Выберите сообщение, чтобы прочитать его</p>
-        </section>
+            </section>
 
+        </div>
     </main>
 </div>
 {% endblock %}

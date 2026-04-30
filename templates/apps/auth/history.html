@@ -1,0 +1,228 @@
+{% extends 'apps/base.html' %}
+{% load static %}
+
+{% block title %}История платежей — OLX Clone{% endblock %}
+
+{% block extra_head %}
+<style>
+    .profile-page {
+        background: linear-gradient(to bottom, #fff 0 300px, #f2f4f5 300px 100%);
+        min-height: calc(100vh - 64px);
+    }
+
+    .container-custom {
+        width: min(1140px, calc(100% - 48px));
+        margin: 0 auto;
+    }
+
+    .top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        padding: 28px 0 16px;
+    }
+
+    .profile-title {
+        font-size: 52px;
+        font-weight: 700;
+        color: #002f34;
+    }
+
+    .main-tabs-profile {
+        display: flex;
+        align-items: flex-end;
+        gap: 36px;
+        margin-top: 28px;
+        border-bottom: 1px solid #eef1f2;
+    }
+
+    .main-tab-profile {
+        position: relative;
+        color: #6c868a;
+        padding: 10px 0 14px;
+        font-size: 15px;
+        text-decoration: none;
+    }
+
+    .main-tab-profile.active {
+        color: #002f34;
+        font-weight: 700;
+    }
+
+    .main-tab-profile.active::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -1px;
+        height: 3px;
+        background: #002f34;
+    }
+
+    .content-wrap-profile {
+        padding-top: 24px;
+        padding-bottom: 60px;
+    }
+
+    .balance-card {
+        background: #fff;
+        border-radius: 4px;
+        padding: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 24px;
+        border: 1px solid #d8dfe0;
+    }
+
+    .history-table-container {
+        background: #fff;
+        border-radius: 4px;
+        border: 1px solid #d8dfe0;
+        overflow: hidden;
+    }
+
+    .history-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .history-table th {
+        background: #f2f4f5;
+        text-align: left;
+        padding: 12px 20px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #406367;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .history-table td {
+        padding: 16px 20px;
+        border-bottom: 1px solid #f2f4f5;
+        font-size: 14px;
+        color: #002f34;
+    }
+
+    .period-select {
+        height: 48px;
+        padding: 0 16px;
+        border: 1px solid #b7c6c8;
+        border-radius: 4px;
+        font-size: 15px;
+        color: #002f34;
+        background: #fff;
+        cursor: pointer;
+        min-width: 240px;
+    }
+
+    .status-badge {
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    .status-success { background: #e6fcf5; color: #0ca678; }
+    .status-pending { background: #fff9db; color: #f08c00; }
+    .status-failed { background: #fff5f5; color: #fa5252; }
+
+    .amount-positive { color: #0ca678; font-weight: 700; }
+    .amount-negative { color: #fa5252; font-weight: 700; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="profile-page">
+    <div class="container-custom">
+        <div class="top-row">
+            <h1 class="profile-title">Платежи и счёт OLX</h1>
+        </div>
+
+        <div class="main-tabs-profile">
+            <a href="{% url 'profile_page' %}" class="main-tab-profile">Объявления</a>
+            <a href="{% url 'user_chats_page' %}" class="main-tab-profile">Сообщения</a>
+            <a href="{% url 'payment_history_page' %}" class="main-tab-profile active">Платежи и счёт OLX</a>
+            <a href="{% url 'settings_page' %}" class="main-tab-profile">Настройки</a>
+        </div>
+    </div>
+
+    <div class="content-wrap-profile">
+        <div class="container-custom">
+            
+            <div class="balance-card">
+                <div>
+                    <div class="text-xs text-gray-500 uppercase font-bold mb-1">Ваш баланс</div>
+                    <div class="text-3xl font-black text-[#002f34]">{{ user.balance|default:0 }} сум</div>
+                </div>
+                <div class="flex gap-4">
+                    <button class="bg-[#002f34] text-white px-8 py-3 rounded font-bold hover:bg-[#004d55] transition">
+                        Пополнить кошелёк
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold text-[#002f34]">История операций</h2>
+                <select class="period-select" onchange="location.href='?period=' + this.value">
+                    <option value="30" {% if current_period == '30' %}selected{% endif %}>Последние 30 дней</option>
+                    <option value="90" {% if current_period == '90' %}selected{% endif %}>Последние 90 дней</option>
+                    <option value="180" {% if current_period == '180' %}selected{% endif %}>Последние 6 месяцев</option>
+                    <option value="all" {% if current_period == 'all' %}selected{% endif %}>За все время</option>
+                </select>
+            </div>
+
+            <div class="history-table-container">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Дата</th>
+                            <th>Описание</th>
+                            <th>Сумма</th>
+                            <th>Статус</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in transactions %}
+                        <tr>
+                            <td class="whitespace-nowrap">{{ t.created_at|date:"d.m.Y H:i" }}</td>
+                            <td>{{ t.description }}</td>
+                            <td class="{% if t.amount > 0 %}amount-positive{% else %}amount-negative{% endif %}">
+                                {% if t.amount > 0 %}+{% endif %}{{ t.amount }} сум
+                            </td>
+                            <td>
+                                <span class="status-badge status-{{ t.status }}">
+                                    {{ t.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center py-20">
+                                <div class="text-gray-400 mb-2"><i class="fa-solid fa-receipt text-5xl"></i></div>
+                                <p class="text-lg font-bold">У вас пока нет операций</p>
+                                <p class="text-sm text-gray-500">Все ваши платежи и пополнения будут отображаться здесь</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if is_paginated %}
+            <div class="mt-8 flex justify-center gap-2">
+                {% if page_obj.has_previous %}
+                <a href="?period={{ current_period }}&page={{ page_obj.previous_page_number }}" class="px-4 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50 transition">Назад</a>
+                {% endif %}
+                <span class="px-4 py-2">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}
+                <a href="?period={{ current_period }}&page={{ page_obj.next_page_number }}" class="px-4 py-2 bg-white border border-gray-300 rounded hover:bg-gray-50 transition">Вперед</a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -2,7 +2,7 @@ from django.urls import path
 from apps.views import AnnouncementListView, MainView, CustomLoginView, GoogleLoginView, GoogleCallbackView, \
     RegisterCreateView, AnnouncementSearchView, ProfileUpdateView, CustomLogoutView, AnnouncementCreateView, \
     category_attributes, ChatPageView, UserChatsView, FavouriteToggleView, FavouriteListView, AnnouncementDetailView, \
-    UserProfileView, StartChatView, UserSettingsView
+    UserProfileView, StartChatView, UserSettingsView, HelpView, PaymentHistoryView, AnnouncementDeactivateView, PromoteSelectionView, PushUpPaymentView, WalletTopupView, WalletCheckoutView, PromotionCheckoutView
 
 urlpatterns = [
     path('', MainView.as_view(), name='main_page'),
@@ -19,6 +19,13 @@ urlpatterns = [
     path('auth/register', RegisterCreateView.as_view(), name='register_page'),
     path('auth/profile', ProfileUpdateView.as_view(), name='profile_page'),
     path('auth/profile/settings', UserSettingsView.as_view(), name='settings_page'),
+    path('myaccount/history/', PaymentHistoryView.as_view(), name='payment_history_page'),
+    path('announcement/deactivate/<int:pk>/', AnnouncementDeactivateView.as_view(), name='announcement_deactivate'),
+    path('announcement/promote/<int:pk>/', PromoteSelectionView.as_view(), name='announcement_promote'),
+    path('announcement/promote/checkout/<int:pk>/', PromotionCheckoutView.as_view(), name='promotion_checkout'),
+    path('announcement/pushup/<int:pk>/', PushUpPaymentView.as_view(), name='announcement_pushup'),
+    path('wallet/topup/', WalletTopupView.as_view(), name='wallet_topup'),
+    path('wallet/checkout/', WalletCheckoutView.as_view(), name='wallet_checkout'),
 
     path("chat/<int:chat_id>/", ChatPageView.as_view(), name="chat_page"),
     path("chat/start/<int:user_id>/", StartChatView.as_view(), name="start_chat"),
@@ -27,6 +34,7 @@ urlpatterns = [
     path('favorites/', FavouriteListView.as_view(), name='favourites_page'),
     path('favorites/toggle/<int:pk>/', FavouriteToggleView.as_view(), name='favourite_toggle'),
     path('user/<int:pk>/', UserProfileView.as_view(), name='user_profile'),
+    path('help/', HelpView.as_view(), name='help_page'),
 
 #     path("api/categories/roots/", api_categories_roots, name="api_categories_roots"),
 #     path("api/categories/<int:parent_id>/children/", api_categories_children, name="api_categories_children"),

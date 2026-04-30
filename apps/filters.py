@@ -7,8 +7,8 @@ from django.db.models.fields.json import KeyTextTransform
 from apps.models import Announcement
 
 
-INPUT_CLASS = "w-full bg-white border-b-2 border-gray-300 px-4 py-3 outline-none focus:border-[#002f34]"
-SELECT_CLASS = "w-full bg-white border-b-2 border-gray-300 px-4 py-3 outline-none focus:border-[#002f34]"
+INPUT_CLASS = "w-full bg-transparent border-b-2 border-gray-200 py-2 outline-none focus:border-[#002f34] transition text-sm text-[#002f34] placeholder:text-gray-300"
+SELECT_CLASS = "w-full bg-transparent border-b-2 border-gray-200 py-2 outline-none focus:border-[#002f34] transition text-sm text-[#002f34] cursor-pointer appearance-none"
 
 
 class AnnouncementFilterSet(django_filters.FilterSet):
@@ -27,6 +27,11 @@ class AnnouncementFilterSet(django_filters.FilterSet):
         label="Цена до"
     )
 
+    seller_type = django_filters.ChoiceFilter(
+        choices=Announcement.SellerTypeChoices.choices,
+        label="Тип продавца"
+    )
+
     class Meta:
         model = Announcement
         fields = []
@@ -39,14 +44,14 @@ class AnnouncementFilterSet(django_filters.FilterSet):
         self.dynamic_config = {}
 
         self.filters["q"].field.widget = forms.TextInput(attrs={
-            "class": INPUT_CLASS,
+            "class": "w-full bg-transparent outline-none text-sm",
             "placeholder": "Что ищете?",
         })
-        self.filters["min_price"].field.widget = forms.NumberInput(attrs={
+        self.filters["min_price"].field.widget = forms.TextInput(attrs={
             "class": INPUT_CLASS,
             "placeholder": "От:",
         })
-        self.filters["max_price"].field.widget = forms.NumberInput(attrs={
+        self.filters["max_price"].field.widget = forms.TextInput(attrs={
             "class": INPUT_CLASS,
             "placeholder": "До:",
         })
@@ -81,7 +86,7 @@ class AnnouncementFilterSet(django_filters.FilterSet):
                     field_name=min_name,
                     method="filter_dynamic_int",
                     label=f"{label} от",
-                    widget=forms.NumberInput(attrs={
+                    widget=forms.TextInput(attrs={
                         "class": INPUT_CLASS,
                         "placeholder": "От:",
                     }),
@@ -93,7 +98,7 @@ class AnnouncementFilterSet(django_filters.FilterSet):
                     field_name=max_name,
                     method="filter_dynamic_int",
                     label=f"{label} до",
-                    widget=forms.NumberInput(attrs={
+                    widget=forms.TextInput(attrs={
                         "class": INPUT_CLASS,
                         "placeholder": "До:",
                     }),
@@ -138,8 +143,8 @@ class AnnouncementFilterSet(django_filters.FilterSet):
                     choices=[(x, x) for x in options],
                     method="filter_dynamic_multi",
                     label=label,
-                    widget=forms.SelectMultiple(attrs={
-                        "class": SELECT_CLASS,
+                    widget=forms.CheckboxSelectMultiple(attrs={
+                        "class": "flex flex-col gap-2 text-sm text-[#002f34] mt-2",
                     }),
                 )
                 multi_filter.parent = self

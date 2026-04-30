@@ -1,0 +1,126 @@
+{% extends 'apps/base.html' %}
+{% load static %}
+
+{% block title %}Оплатить заказ - OLX{% endblock %}
+
+{% block extra_head %}
+<style>
+    .checkout-container {
+        max-width: 960px;
+        margin: 0 auto;
+    }
+    .payment-provider-card {
+        transition: all 0.2s ease;
+        border: 2px solid #eef1f2;
+    }
+    .payment-provider-card:hover {
+        border-color: #3a77ff;
+    }
+    .payment-provider-card.active {
+        border-color: #3a77ff;
+        background-color: #f8faff;
+    }
+    .provider-logo {
+        height: 48px;
+        width: 48px;
+        object-fit: contain;
+    }
+    .btn-cancel {
+        border: 2px solid #002f34;
+        color: #002f34;
+    }
+    .btn-cancel:hover {
+        background-color: #f2f4f5;
+    }
+    .btn-pay {
+        background-color: #002f34;
+        color: white;
+    }
+    .btn-pay:hover {
+        background-color: #004d55;
+    }
+</style>
+{% endblock %}
+
+{% block search_section %}{% endblock %}
+
+{% block content %}
+<div class="bg-[#f2f4f5] min-h-screen py-12">
+    <div class="checkout-container px-4">
+        
+        <!-- SWOTKA (Summary) -->
+        <h1 class="text-2xl font-black text-[#002f34] mb-8">Сводка</h1>
+
+        <div class="bg-white rounded p-6 shadow-sm mb-12 border border-[#eef1f2]">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <span class="text-[#002f34] font-medium">Пополнение счета</span>
+                    <a href="{% url 'wallet_topup' %}" class="text-[#3a77ff] text-xs hover:underline">Изменить</a>
+                </div>
+                <div class="text-[#002f34] font-black">{{ amount }} сум</div>
+            </div>
+        </div>
+
+        <!-- PAYMENT METHOD -->
+        <h2 class="text-xl font-bold text-[#002f34] mb-8">Как вы хотите оплатить?</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <!-- PAYNET -->
+            <div class="payment-provider-card active bg-white rounded p-12 flex flex-col items-center justify-center text-center shadow-sm cursor-pointer" onclick="selectProvider(this)">
+                <div class="w-12 h-12 flex items-center justify-center mb-6">
+                    <img src="https://paynet.uz/favicon.ico" class="opacity-50 grayscale hover:grayscale-0 transition" style="filter: contrast(0.5);">
+                    <!-- Fallback if icon fails -->
+                    <div class="w-8 h-8 rounded-full bg-[#009245]"></div>
+                </div>
+                <div class="text-[#002f34] font-bold text-sm mb-1 uppercase tracking-widest">PAYNET</div>
+                <div class="text-[#7f979a] text-[11px] mt-2">PAYNET</div>
+            </div>
+
+            <!-- CLICK -->
+            <div class="payment-provider-card bg-white rounded p-12 flex flex-col items-center justify-center text-center shadow-sm cursor-pointer" onclick="selectProvider(this)">
+                <div class="w-12 h-12 flex items-center justify-center mb-6">
+                    <div class="w-10 h-10 rounded-full border-4 border-[#009ae4] flex items-center justify-center">
+                        <div class="w-4 h-4 bg-[#009ae4] rounded-full"></div>
+                    </div>
+                </div>
+                <div class="text-[#002f34] font-bold text-sm mb-1 uppercase tracking-widest">ClickUZ</div>
+                <div class="text-[#7f979a] text-[11px] mt-2">ClickUZ</div>
+            </div>
+
+            <!-- PAYME -->
+            <div class="payment-provider-card bg-white rounded p-12 flex flex-col items-center justify-center text-center shadow-sm cursor-pointer" onclick="selectProvider(this)">
+                <div class="w-12 h-12 flex items-center justify-center mb-6">
+                   <div class="font-black text-xl italic text-[#3dcedc]">Pay<span class="bg-[#3dcedc] text-white px-1 rounded not-italic">me</span></div>
+                </div>
+                <div class="text-[#002f34] font-bold text-sm mb-1 uppercase tracking-widest">Payme</div>
+                <div class="text-[#7f979a] text-[11px] mt-2">Payme</div>
+            </div>
+        </div>
+
+        <!-- SUMMARY & BUTTONS -->
+        <div class="flex flex-col items-end">
+            <div class="flex items-baseline gap-4 mb-8">
+                <span class="text-xl font-bold text-[#002f34]">Общая сумма:</span>
+                <span class="text-2xl font-black text-[#002f34]">{{ amount }} сум</span>
+            </div>
+
+            <div class="bg-white rounded p-6 shadow-sm w-full flex justify-end gap-4 border border-[#eef1f2]">
+                <a href="{% url 'wallet_topup' %}" class="btn-cancel px-8 py-3 rounded font-bold text-sm transition">
+                    Отменить
+                </a>
+                <button class="btn-pay px-12 py-3 rounded font-bold text-sm transition shadow-md">
+                    Оплатить
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    function selectProvider(el) {
+        document.querySelectorAll('.payment-provider-card').forEach(card => card.classList.remove('active'));
+        el.classList.add('active');
+    }
+</script>
+{% endblock %}

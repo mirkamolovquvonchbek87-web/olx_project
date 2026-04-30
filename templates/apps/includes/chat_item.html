@@ -1,36 +1,41 @@
-<a href="{% url 'chat_page' chat.id %}" class="flex gap-3 p-4 hover:bg-gray-50 transition cursor-pointer group">
-    <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center">
+<a href="{% url 'chat_page' chat.id %}?type={{ current_type }}&unread={{ current_unread }}" 
+   class="flex gap-4 p-5 hover:bg-[#f2f4f5] transition cursor-pointer group border-l-4 {% if chat.id == active_chat_id %}border-[#002f34] bg-[#f2f4f5]{% else %}border-transparent{% endif %}">
+    
+    <div class="w-12 h-12 rounded-full overflow-hidden bg-gray-100 flex-shrink-0 flex items-center justify-center border border-gray-100">
         {% if chat.announcement and chat.announcement.images.first %}
         <img src="{{ chat.announcement.images.first.image.url }}" class="w-full h-full object-cover">
         {% else %}
         <i class="fa-solid fa-user text-gray-300 text-xl"></i>
         {% endif %}
     </div>
+
     <div class="flex-1 min-w-0">
-        <div class="flex justify-between items-baseline mb-1">
-            <h4 class="font-bold text-[#002f34] text-sm truncate pr-2">
+        <div class="flex justify-between items-baseline mb-0.5">
+            <h4 class="font-bold text-[#002f34] text-[15px] truncate pr-2 group-hover:text-cyan-700 transition">
                 {% if chat.announcement %}{{ chat.announcement.name }}{% else %}Без объявления{% endif %}
             </h4>
-            <span class="text-[10px] text-gray-400 flex-shrink-0">
+            <span class="text-[11px] text-[#7f979a] font-normal flex-shrink-0">
                 {% if chat.last_message %}{{ chat.last_message.created_at|date:"d.m" }}{% else %}Новый{% endif %}
             </span>
         </div>
-        <div class="flex items-center gap-2">
-            <span class="bg-gray-200 text-gray-500 text-[9px] px-1.5 py-0.5 rounded font-bold uppercase truncate">
-                {{ other_user.first_name|default:other_user.email }}
+        
+        <div class="flex items-center gap-2 mb-1">
+            <span class="text-[#7f979a] text-[12px] font-bold">
+                {{ other_user.first_name|default:other_user.email|truncatechars:15 }}
             </span>
             {% if chat.last_message and not chat.last_message.is_read and chat.last_message.from_user != request.user %}
-            <span class="bg-[#3a77ff] text-white text-[9px] px-1.5 py-0.5 rounded font-bold uppercase">Новое</span>
+            <span class="w-2 h-2 bg-[#3a77ff] rounded-full"></span>
             {% endif %}
         </div>
-        <p class="text-xs text-gray-500 truncate mt-1">
+
+                <p class="text-[13px] {% if chat.last_message and not chat.last_message.is_read and chat.last_message.from_user != request.user %}text-[#002f34] font-bold{% else %}text-[#7f979a]{% endif %} truncate">
             {% if chat.last_message %}
-            {% if chat.last_message.from_user == request.user %}
-            <span class="text-gray-400">Вы:</span>
-            {% endif %}
-            {{ chat.last_message.message }}
+                {% if chat.last_message.from_user == request.user %}
+                <span class="text-[#7f979a] font-normal">Вы: </span>
+                {% endif %}
+                {{ chat.last_message.message }}
             {% else %}
-            Нет сообщений
+                Нет сообщений
             {% endif %}
         </p>
     </div>

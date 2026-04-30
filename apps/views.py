@@ -7,9 +7,9 @@ from django.db.models import Q
 from django.shortcuts import redirect
 from django.urls import reverse_lazy
 from django.views import View
-from django.views.generic import CreateView, UpdateView, DeleteView, DetailView
+from django.views.generic import CreateView, UpdateView, DeleteView, DetailView, ListView, TemplateView
 from apps.filters import AnnouncementFilterSet, AnnouncementOrderFilterSet
-from apps.models import Announcement, Category, User, Chat, Region, District
+from apps.models import Announcement, Category, User, Chat, Region, District, Transaction
 from apps.forms import AnnouncementModelForm, RegisterModelForm, EmailLoginForm
 from django.views.generic import ListView
 from apps.models.announcements import AnnouncementImage, FavouriteAnnouncement
@@ -29,7 +29,8 @@ class MainView(ListView):
         context = super().get_context_data(**kwargs)
 
         announcements = Announcement.objects.filter(
-            product_type=Announcement.AnnouncementType.VIP
+            product_type=Announcement.AnnouncementType.VIP,
+            status=Announcement.Status.ACTIVE
         ).select_related('district__region').prefetch_related('images')
 
         q = self.request.GET.get("q")
@@ -76,7 +77,9 @@ class AnnouncementSearchView(ListView):
     paginate_by = 40
 
     def get_queryset(self):
-        queryset = Announcement.objects.all().select_related('district__region').prefetch_related('images')
+        queryset = Announcement.objects.filter(
+            status=Announcement.Status.ACTIVE
+        ).select_related('district__region').prefetch_related('images')
         
         region_id = self.request.GET.get("region")
         if region_id:
@@ -118,7 +121,10 @@ class AnnouncementListView(ListView):
         self.category = get_object_or_404(Category, slug=slug)
         categories = self.category.get_descendants(include_self=True)
 
-        queryset = Announcement.objects.filter(category__in=categories)
+        queryset = Announcement.objects.filter(
+            category__in=categories,
+            status=Announcement.Status.ACTIVE
+        )
         
         region_id = self.request.GET.get("region")
         if region_id:
@@ -277,22 +283,53 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         status = self.request.GET.get('status', Announcement.Status.ACTIVE)
         sort = self.request.GET.get('sort', 'newest')
         
-        announcements = Announcement.objects.filter(
-            user=self.request.user,
+        user_announcements = Announcement.objects.filter(user=self.request.user)
+        
+        context['announcements'] = user_announcements.filter(
             status=status
         ).select_related('category', 'district__region').prefetch_related('images')
-
-        if sort == 'price_asc':
-            announcements = announcements.order_by('price')
-        elif sort == 'price_desc':
-            announcements = announcements.order_by('-price')
-        else:
-            announcements = announcements.order_by('-created_at')
         
-        context['announcements'] = announcements
+        if sort == 'price_asc':
+            context['announcements'] = context['announcements'].order_by('price')
+        elif sort == 'price_desc':
+            context['announcements'] = context['announcements'].order_by('-price')
+        else:
+            context['announcements'] = context['announcements'].order_by('-created_at')
+        
+        # Status counts
+        from django.db.models import Count
+        counts = user_announcements.values('status').annotate(total=Count('id'))
+        counts_dict = {item['status']: item['total'] for item in counts}
+        
+        context['counts'] = counts_dict
         context['current_status'] = status
         context['current_sort'] = sort
         context['Status'] = Announcement.Status
+        return context
+
+
+class PaymentHistoryView(LoginRequiredMixin, ListView):
+    model = Transaction
+    template_name = 'apps/auth/history.html'
+    context_object_name = 'transactions'
+    paginate_by = 20
+
+    def get_queryset(self):
+        queryset = Transaction.objects.filter(user=self.request.user)
+        period = self.request.GET.get('period', '30')
+        
+        if period != 'all':
+            from django.utils import timezone
+            from datetime import timedelta
+            days = int(period)
+            start_date = timezone.now() - timedelta(days=days)
+            queryset = queryset.filter(created_at__gte=start_date)
+            
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['current_period'] = self.request.GET.get('period', '30')
         return context
 
 
@@ -374,6 +411,36 @@ def category_attributes(request, slug):
 #
 #         return context
 
+class UserChatsView(LoginRequiredMixin, ListView):
+    model = Chat
+    template_name = 'apps/chats.html'
+    context_object_name = "chats"
+
+    def get_queryset(self):
+        queryset = Chat.objects.filter(
+            Q(user1=self.request.user) | Q(user2=self.request.user)
+        ).distinct().order_by("-created_at")
+        
+        chat_type = self.request.GET.get('type') # 'buying' or 'selling'
+        unread = self.request.GET.get('unread') # '1' for unread only
+
+        if chat_type == 'buying':
+            queryset = queryset.exclude(announcement__user=self.request.user)
+        elif chat_type == 'selling':
+            queryset = queryset.filter(announcement__user=self.request.user)
+            
+        if unread == '1':
+            queryset = queryset.filter(messages__is_read=False).exclude(messages__from_user=self.request.user)
+            
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['current_type'] = self.request.GET.get('type', 'all')
+        context['current_unread'] = self.request.GET.get('unread', '0')
+        return context
+
+
 class ChatPageView(LoginRequiredMixin, DetailView):
     model = Chat
     template_name = 'apps/chat.html'
@@ -383,22 +450,33 @@ class ChatPageView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
-        # sidebar chats
-        context['chats'] = Chat.objects.filter(
+        # sidebar chats with the same filtering logic
+        queryset = Chat.objects.filter(
             Q(user1=self.request.user) | Q(user2=self.request.user)
         ).distinct().order_by("-created_at")
+        
+        chat_type = self.request.GET.get('type')
+        unread = self.request.GET.get('unread')
+
+        if chat_type == 'buying':
+            queryset = queryset.exclude(announcement__user=self.request.user)
+        elif chat_type == 'selling':
+            queryset = queryset.filter(announcement__user=self.request.user)
+            
+        if unread == '1':
+            queryset = queryset.filter(messages__is_read=False).exclude(messages__from_user=self.request.user)
+            
+        context['chats'] = queryset
+        context['current_type'] = chat_type or 'all'
+        context['current_unread'] = unread or '0'
 
         chat = self.object
-
-        # other user
         if chat.user1 == self.request.user:
             context['other_user'] = chat.user2
         else:
             context['other_user'] = chat.user1
 
-
         messages = chat.messages.all()
-
         for m in messages:
             if m.file:
                 m.is_image = m.file.name.lower().endswith(
@@ -409,18 +487,8 @@ class ChatPageView(LoginRequiredMixin, DetailView):
 
         context['messages'] = messages
         context['has_messages'] = messages.exists()
-
+        context['active_chat_id'] = chat.id
         return context
-
-class UserChatsView(LoginRequiredMixin, ListView):
-    model = Chat
-    template_name = 'apps/chats.html'
-    context_object_name = 'chats'
-
-    def get_queryset(self):
-        return Chat.objects.filter(
-            Q(user1=self.request.user) | Q(user2=self.request.user)
-        ).distinct().order_by("-created_at")
 
 
 class FavouriteListView(LoginRequiredMixin, ListView):
@@ -498,14 +566,81 @@ class UserProfileView(DetailView):
 class StartChatView(LoginRequiredMixin, View):
     def get(self, request, user_id):
         other_user = get_object_or_404(User, id=user_id)
+        # Check if chat already exists
+        chat = Chat.objects.filter(
+            (Q(user1=request.user) & Q(user2=other_user)) |
+            (Q(user1=other_user) & Q(user2=request.user))
+        ).first()
 
-        # Agar user o‘ziga o‘zi chat boshlamoqchi bo‘lsa profilga yubor
-        if request.user == other_user:
-            return redirect('user_profile', pk=user_id)
-
-        # Chatni tekshirish: agar mavjud bo‘lsa olish, yo‘q bo‘lsa yaratish
-        chat, created = Chat.get_or_create_chat(request.user, other_user)
+        if not chat:
+            chat = Chat.objects.create(user1=request.user, user2=other_user)
 
         return redirect('chat_page', chat_id=chat.id)
 
+class AnnouncementDeactivateView(LoginRequiredMixin, View):
+    def post(self, request, pk, *args, **kwargs):
+        announcement = get_object_or_404(Announcement, pk=pk, user=request.user)
+        if announcement.status == Announcement.Status.ACTIVE:
+            announcement.status = Announcement.Status.UNACTIVE
+        else:
+            announcement.status = Announcement.Status.WAITING
+        announcement.save()
+        return redirect('profile_page')
 
+class PromoteSelectionView(LoginRequiredMixin, DetailView):
+    model = Announcement
+    template_name = 'apps/promote.html'
+    context_object_name = 'announcement'
+
+    def get_queryset(self):
+        return super().get_queryset().filter(user=self.request.user)
+
+class PushUpPaymentView(LoginRequiredMixin, DetailView):
+    model = Announcement
+    template_name = 'apps/pushup_payment.html'
+    context_object_name = 'announcement'
+
+    def get_queryset(self):
+        return super().get_queryset().filter(user=self.request.user)
+
+class PromotionCheckoutView(LoginRequiredMixin, DetailView):
+    model = Announcement
+    template_name = 'apps/promotion_checkout.html'
+    context_object_name = 'announcement'
+
+    def get_queryset(self):
+        return super().get_queryset().filter(user=self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['package'] = self.request.GET.get('package', 'optimum').capitalize()
+        context['price'] = self.request.GET.get('price', '45 000')
+        return context
+
+class WalletTopupView(LoginRequiredMixin, TemplateView):
+    template_name = 'apps/wallet_topup.html'
+
+class WalletCheckoutView(LoginRequiredMixin, TemplateView):
+    template_name = 'apps/wallet_checkout.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['amount'] = self.request.GET.get('amount', '6 000')
+        return context
+
+
+class HelpView(ListView):
+    template_name = 'apps/help.html'
+    queryset = Category.objects.filter(parent=None)
+    context_object_name = 'categories'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Adding some mock popular articles for the help page
+        context['popular_articles'] = [
+            {'title': 'Как подать объявление?', 'id': 1},
+            {'title': 'Как изменить или удалить объявление?', 'id': 2},
+            {'title': 'Правила публикации', 'id': 3},
+            {'title': 'Безопасность на OLX', 'id': 4},
+        ]
+        return context

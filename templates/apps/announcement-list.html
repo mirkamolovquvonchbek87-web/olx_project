@@ -9,19 +9,16 @@
     .filter-wrapper {
         position: relative;
         width: 100%;
-        max-width: 250px;
     }
 
-    /* Имитация select */
     .filter-select-imitation {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 12px;
-        background: white;
-        border-radius: 0;
+        padding: 8px 0;
+        background: transparent;
         cursor: pointer;
-        border-bottom: 2px solid #ced4da;
+        border-bottom: 2px solid #f2f4f5;
         transition: border-color 0.3s;
     }
 
@@ -29,83 +26,105 @@
         border-bottom-color: #002f34;
     }
 
-    /* Список категорий */
+    /* Categories List Container */
     .main-categories {
         display: none;
         position: absolute;
         top: 100%;
         left: 0;
-        width: 280px;
+        width: 100%;
+        min-width: 280px;
         background: white;
         list-style: none;
         padding: 0;
         margin: 0;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
         z-index: 50;
+        border: 1px solid #f2f4f5;
     }
 
     .category-item {
         position: relative;
-        padding: 10px 15px;
+        padding: 12px 20px;
         display: flex;
         justify-content: space-between;
         align-items: center;
         color: #002f34;
         border-bottom: 1px solid #f2f4f5;
+        font-weight: 500;
+        transition: all 0.2s;
     }
 
-    /* Подкатегории */
+    .category-item:hover {
+        background-color: #f2f4f5;
+        color: #002f34;
+    }
+
+    /* Sub-categories show on hover */
+    .category-item:hover>.sub-categories {
+        display: block;
+    }
+
     .sub-categories {
         display: none;
         position: absolute;
-        top: 0;
+        top: -1px;
         left: 100%;
-        width: 280px;
+        width: 100%;
+        min-width: 280px;
         background: white;
-        border-left: 1px solid #f2f4f5;
-        box-shadow: 10px 4px 12px rgba(0, 0, 0, 0.1);
+        border: 1px solid #f2f4f5;
+        box-shadow: 10px 10px 25px rgba(0, 0, 0, 0.05);
         list-style: none;
         padding: 0;
         z-index: 60;
     }
 
-    /* Оформление счетчика (числа) */
-    .count-badge {
-        background: #f2f4f5;
-        color: #002f34;
-        font-size: 10px;
-        padding: 2px 8px;
-        border-radius: 12px;
-        margin-right: 8px;
-    }
-
-    .category-item:hover {
-        background-color: #002f34;
-        color: white;
-    }
-
-    .category-item:hover .count-badge {
-        background: rgba(255, 255, 255, 0.2);
-        color: white;
-    }
-
-    /* Показываем */
-    .hidden-check:checked~.main-categories {
-        display: block;
-    }
-
-    .category-item:hover>.sub-categories {
-        display: block;
-    }
-
-    /* Чтобы меню не закрывалось, когда мы ведем мышку к подкатегории */
-    .sub-categories::before {
-        content: "";
-        position: absolute;
-        left: -10px;
-        top: 0;
+    .select-chevron {
         width: 10px;
-        height: 100%;
+        height: 10px;
+        border-left: 2px solid #002f34;
+        border-bottom: 2px solid #002f34;
+        transform: rotate(-45deg);
+        margin-bottom: 4px;
+        opacity: 0.5;
+    }
+
+    .select-chevron-small {
+        width: 6px;
+        height: 6px;
+        border-left: 1.5px solid #002f34;
+        border-bottom: 1.5px solid #002f34;
+        transform: rotate(-45deg);
+        display: inline-block;
+        margin-bottom: 2px;
+        opacity: 0.5;
+    }
+
+    .filter-label {
+        color: #406367;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .border-bottom-premium {
+        border-bottom: 2px solid #f2f4f5;
+        transition: border-color 0.3s;
+    }
+
+    .border-bottom-premium:focus {
+        border-bottom-color: #002f34;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
     }
 </style>
 {% endblock %}
@@ -114,136 +133,240 @@
 
 {% block content %}
 <main class="max-w-6xl mx-auto px-4 py-6">
-    <section class="bg-white p-6 rounded shadow-sm mb-6">
-        <form method="get" action="" class="mb-6">
-            <div class="flex gap-2 mb-6">
-                <div class="flex-1 relative">
-                    <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+    <!-- Breadcrumbs -->
+    <div class="text-xs text-gray-500 mb-6 flex gap-2 items-center flex-wrap">
+        <a href="{% url 'main_page' %}" class="hover:underline transition">Главная</a>
+        <span>/</span>
+        {% if current_category %}
+        <span class="text-gray-400 font-normal">{{ current_category.name }}</span>
+        {% else %}
+        <span class="text-gray-400 font-normal">Результаты поиска</span>
+        {% endif %}
+    </div>
+
+    <section class="bg-white p-0 rounded shadow-sm mb-8 overflow-hidden border border-gray-100">
+        <form method="get" action="" id="filter-form">
+            <div class="flex flex-col md:flex-row gap-0.5 bg-gray-100 border-b border-gray-100">
+                <!-- Keyword Search -->
+                <div class="flex-[3] bg-white p-4 flex items-center gap-3 relative">
+                    <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
                     <input type="text" name="q" value="{{ search_value }}" placeholder="Что ищете?"
-                        class="w-full border border-gray-300 rounded pl-11 pr-4 py-2 outline-none focus:border-[#002f34]">
+                        class="w-full outline-none text-sm" />
                 </div>
-                <div class="w-80 relative flex items-center gap-1">
-                    <i class="fa-solid fa-location-dot absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 z-10"></i>
-                    
+
+                <!-- Location Filter (Region & District) -->
+                <div class="flex-[3] bg-white p-4 flex items-center gap-2 relative group">
+                    <i class="fa-solid fa-location-dot text-gray-400"></i>
+
+                    <!-- Region Select -->
                     <select id="regionSelectResult" name="region" onchange="updateDistrictsResult(this.value)"
-                         class="w-1/2 border border-gray-300 rounded pl-11 pr-2 py-2 outline-none focus:border-[#002f34] appearance-none bg-white text-xs">
-                         <option value="">Вся страна</option>
-                         {% for region in regions %}
-                             <option value="{{ region.id }}" {% if request.GET.region == region.id|slugify %}selected{% endif %}>
-                                 {{ region.name }}
-                             </option>
-                         {% endfor %}
+                        class="w-1/2 outline-none text-sm bg-transparent cursor-pointer appearance-none border-r border-gray-100 pr-2">
+                        <option value="">Вся страна</option>
+                        {% for region in regions %}
+                        <option value="{{ region.id }}" {% if request.GET.region == region.id|slugify %}selected{% endif %}>
+                            {{ region.name }}
+                        </option>
+                        {% endfor %}
                     </select>
 
+                    <!-- District Select -->
                     <select id="districtSelectResult" name="district"
-                         class="w-1/2 border border-gray-300 rounded pl-2 pr-2 py-2 outline-none focus:border-[#002f34] appearance-none bg-white text-xs">
-                         <option value="">Весь район</option>
+                        class="w-1/2 outline-none text-sm bg-transparent cursor-pointer appearance-none pl-2">
+                        <option value="">Весь район</option>
                     </select>
+
+                    <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 absolute right-4"></i>
                 </div>
+
                 <button type="submit"
-                    class="bg-[#002f34] text-white px-8 py-2 rounded font-bold hover:bg-[#004f56] transition">
+                    class="bg-[#002f34] text-white px-10 py-4 font-bold hover:bg-[#004f56] transition text-sm">
                     Поиск
                 </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div class="filter-wrapper">
-                    <label class="text-xs text-gray-500 uppercase font-bold block mb-1">Категория</label>
-                    <input type="checkbox" id="menu-toggle" class="hidden-check hidden">
-                    <label for="menu-toggle" class="filter-select-imitation">
-                        <span class="text-sm">{{ current_category.name|default:"Выберите категорию" }}</span>
-                        <span class="text-[10px] text-gray-400">▼</span>
-                    </label>
-                    <ul class="main-categories">
-                        {% for category in top_categories %}
-                        <li class="category-item">
-                            <span class="text-sm font-medium">{{ category.name }}</span>
-                            <div class="flex items-center">
-                                <span class="text-gray-400">›</span>
+            <div class="px-6 py-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-[#002f34]">Фильтры</h2>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-y-8 gap-x-12">
+                    <!-- Category -->
+                    <div class="filter-wrapper">
+                        <label class="filter-label uppercase">Категория</label>
+                        <input type="checkbox" id="menu-toggle" class="hidden-check hidden">
+                        <label for="menu-toggle" class="filter-select-imitation">
+                            <span class="text-sm truncate mr-2">{{ current_category.name|default:"Выберите категорию" }}</span>
+                            <span class="select-chevron-small"></span>
+                        </label>
+                        <ul class="main-categories">
+                            {% for category in top_categories %}
+                            <li class="category-item">
+                                <span class="text-sm font-medium">{{ category.name }}</span>
+                                <div class="flex items-center">
+                                    <span class="text-gray-400">›</span>
+                                </div>
+                                <ul class="sub-categories">
+                                    <li class="p-4 font-bold text-[#002f34] border-b">Все в {{ category.name }}</li>
+                                    {% for sub in category.children.all %}
+                                    <li class="hover:bg-gray-100 p-3">
+                                        <a href="{% url 'announcement_list_page' sub.slug %}"
+                                            class="text-sm text-[#002f34] block w-full">
+                                            {{ sub.name }}
+                                        </a>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <!-- Subcategory (if current_category) -->
+                    {% if current_category and current_category.children.all %}
+                    <div class="relative">
+                        <label class="filter-label uppercase">Подкатегория</label>
+                        <select onchange="window.location.href=this.value" class="w-full bg-transparent border-bottom-premium py-2 outline-none text-sm text-[#002f34] cursor-pointer appearance-none">
+                            <option value="">Все объявления</option>
+                            {% for sub in current_category.children.all %}
+                            <option value="{% url 'announcement_list_page' sub.slug %}">{{ sub.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <span class="select-chevron-small absolute right-0 bottom-4 pointer-events-none"></span>
+                    </div>
+                    {% endif %}
+
+                    <!-- Price -->
+                    <div>
+                        <label class="filter-label uppercase">Цена</label>
+                        <div class="flex items-center gap-2">
+                            <div class="relative flex-1">
+                                {{ filter.form.min_price }}
+                                <span class="absolute left-0 bottom-2 text-sm text-gray-400 pointer-events-none"></span>
                             </div>
-                            <ul class="sub-categories">
-                                <li class="p-4 font-bold text-[#002f34] border-b">Все в {{ category.name }}</li>
-                                {% for sub in category.children.all %}
-                                <li class="hover:bg-gray-100 p-3">
-                                    <a href="{% url 'announcement_list_page' sub.slug %}"
-                                        class="text-sm text-[#002f34] block w-full">
-                                        {{ sub.name }}
-                                    </a>
-                                </li>
-                                {% endfor %}
-                            </ul>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                </div>
-
-                <div>
-                    <label class="text-xs text-gray-500 uppercase font-bold block mb-1">Цена</label>
-                    <div class="flex gap-2">
-                        {{ filter.form.min_price }}
-                        {{ filter.form.max_price }}
+                            <div class="relative flex-1">
+                                {{ filter.form.max_price }}
+                                <span class="absolute left-0 bottom-2 text-sm text-gray-400 pointer-events-none"></span>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                {% for item in dynamic_fields %}
-                {% if item.type == "range" %}
-                <div>
-                    <label class="text-xs text-gray-500 uppercase font-bold block mb-1">{{ item.label }}</label>
-                    <div class="flex gap-2">
-                        {{ filter.form|get_field:item.min_name }}
-                        {{ filter.form|get_field:item.max_name }}
+                    <!-- Dynamic Fields -->
+                    {% for item in dynamic_fields %}
+                    {% if item.type == "range" %}
+                    <div class="flex flex-col">
+                        <label class="filter-label uppercase">{{ item.label }}</label>
+                        <div class="flex items-center gap-2">
+                            <div class="relative flex-1">
+                                {{ filter.form|get_field:item.min_name }}
+                            </div>
+                            <div class="relative flex-1">
+                                {{ filter.form|get_field:item.max_name }}
+                            </div>
+                        </div>
                     </div>
+                    {% elif item.type == "select" %}
+                    <div class="relative">
+                        <label class="filter-label uppercase">{{ item.label }}</label>
+                        {{ filter.form|get_field:item.name }}
+                        <span class="select-chevron-small absolute right-0 bottom-4 pointer-events-none"></span>
+                    </div>
+                    {% else %}
+                    <div>
+                        <label class="filter-label uppercase">{{ item.label }}</label>
+                        <div class="mt-1">
+                            {{ filter.form|get_field:item.name }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endfor %}
                 </div>
-                {% else %}
-                <div>
-                    <label class="text-xs text-gray-500 uppercase font-bold block mb-1">{{ item.label }}</label>
-                    {{ filter.form|get_field:item.name }}
-                </div>
-                {% endif %}
-                {% endfor %}
-                <div>
-                    <label class="text-xs text-gray-500 uppercase font-bold block mb-1">Сортировка</label>
-                    <select name="order" onchange="this.form.submit()"
-                        class="w-full bg-white border-b-2 border-gray-300 px-4 py-3 outline-none focus:border-[#002f34]">
 
-                        {% with selected_order=request.GET.order|default:"" %}
-
-                            <option value="" {% if selected_order == "" %}selected{% endif %}>
-                                Все
-                            </option>
-
-                            <option value="new" {% if selected_order == "new" %}selected{% endif %}>
-                                Eng yangi
-                            </option>
-
-                            <option value="old" {% if selected_order == "old" %}selected{% endif %}>
-                                Eng eski
-                            </option>
-
-                            <option value="expensive" {% if selected_order == "expensive" %}selected{% endif %}>
-                                Eng qimmat
-                            </option>
-
-                            <option value="cheap" {% if selected_order == "cheap" %}selected{% endif %}>
-                                Eng arzon
-                            </option>
-
+                <!-- Seller Type Tabs -->
+                <div class="flex justify-between items-center mt-12 pt-4 border-t border-gray-100">
+                    <div class="flex gap-8">
+                        {% with current_seller=request.GET.seller_type|default:"" %}
+                        <a href="?{% for k,v in request.GET.items %}{% if k != 'seller_type' %}{{k}}={{v}}&{% endif %}{% endfor %}"
+                            class="text-sm font-bold pb-2 border-b-4 {% if current_seller == '' %}border-[#002f34] text-[#002f34]{% else %}border-transparent text-gray-400 hover:text-[#002f34]{% endif %} transition">
+                            Все объявления
+                        </a>
+                        <a href="?{% for k,v in request.GET.items %}{% if k != 'seller_type' %}{{k}}={{v}}&{% endif %}{% endfor %}seller_type=business"
+                            class="text-sm font-bold pb-2 border-b-4 {% if current_seller == 'business' %}border-[#002f34] text-[#002f34]{% else %}border-transparent text-gray-400 hover:text-[#002f34]{% endif %} transition">
+                            Бизнес
+                        </a>
+                        <a href="?{% for k,v in request.GET.items %}{% if k != 'seller_type' %}{{k}}={{v}}&{% endif %}{% endfor %}seller_type=private"
+                            class="text-sm font-bold pb-2 border-b-4 {% if current_seller == 'private' %}border-[#002f34] text-[#002f34]{% else %}border-transparent text-gray-400 hover:text-[#002f34]{% endif %} transition">
+                            Частное
+                        </a>
                         {% endwith %}
-                    </select>
+                    </div>
+                    <div>
+                        <a href="?" class="text-sm text-gray-500 hover:text-[#002f34] transition">Сбросить фильтры</a>
+                    </div>
                 </div>
-            </div>
-
-            <div class="flex justify-end mt-6">
-                <a href="?" class="text-sm text-gray-500 underline self-center mr-6">Сбросить фильтры</a>
-                <button type="submit"
-                    class="bg-[#002f34] text-white px-10 py-3 rounded font-bold hover:bg-[#004f56] transition">
-                    Применить
-                </button>
             </div>
         </form>
     </section>
 
-    <h3 class="text-xl font-bold text-[#002f34] mb-4">Мы нашли {% if paginator %}{{ paginator.count }}{% else %}{{ announcements.count }}{% endif %} объявлений</h3>
+    <!-- Popular Tags / Brands -->
+    {% if current_category and current_category.children.all %}
+    <div class="mb-10 overflow-x-auto pb-4 no-scrollbar">
+        <div class="flex gap-4 min-w-max">
+            {% for sub in current_category.children.all %}
+            <a href="{% url 'announcement_list_page' sub.slug %}"
+                class="text-sm text-[#002f34] hover:underline whitespace-nowrap">
+                {{ sub.name }} <span class="text-gray-400 ml-1">{{ forloop.counter|add:100 }}</span>
+            </a>
+            {% endfor %}
+            <button class="text-sm font-bold text-[#002f34] flex items-center gap-1">
+                Показать все <i class="fa-solid fa-chevron-down text-[10px]"></i>
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Sort and Currency Section -->
+    <div class="flex justify-between items-center mb-6">
+        <div class="text-xs text-gray-400">
+            <a href="/" class="hover:underline">Главная</a> / <a href="#" class="hover:underline text-gray-500">{{ current_category.name }}</a>
+        </div>
+        <div class="flex items-center gap-6">
+            <div class="flex items-center gap-2">
+                <span class="text-sm text-gray-500">Сортировать по:</span>
+                <div class="relative min-w-[180px]">
+                    <select name="order" form="filter-form" onchange="this.form.submit()"
+                        class="w-full bg-white border border-gray-200 rounded px-3 py-2 text-sm text-[#002f34] font-medium appearance-none cursor-pointer focus:border-[#002f34] outline-none">
+                        {% with selected_order=request.GET.order|default:"" %}
+                        <option value="" {% if selected_order == "" %}selected{% endif %}>Рекомендованное вам</option>
+                        <option value="new" {% if selected_order == "new" %}selected{% endif %}>Eng yangi</option>
+                        <option value="expensive" {% if selected_order == "expensive" %}selected{% endif %}>Eng qimmat</option>
+                        <option value="cheap" {% if selected_order == "cheap" %}selected{% endif %}>Eng arzon</option>
+                        {% endwith %}
+                    </select>
+                    <i class="fa-solid fa-chevron-down text-[10px] text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                </div>
+            </div>
+
+            <div class="flex gap-1">
+                <button class="w-8 h-8 flex items-center justify-center text-gray-400 border border-gray-200 rounded hover:bg-gray-50 transition">
+                    <i class="fa-solid fa-bars-staggered"></i>
+                </button>
+                <button class="w-8 h-8 flex items-center justify-center text-[#002f34] bg-white border border-gray-200 rounded shadow-sm">
+                    <i class="fa-solid fa-table-cells-large"></i>
+                </button>
+            </div>
+
+            <div class="flex items-center gap-2 text-sm">
+                <span class="text-gray-500">Валюта:</span>
+                <button class="font-bold text-[#002f34]">сум</button>
+                <button class="text-gray-400 hover:text-[#002f34]">у.е.</button>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="text-xl font-bold text-[#002f34] mb-6">
+        Мы нашли {% if paginator %}{{ paginator.count }}{% else %}{{ announcements.count }}{% endif %} объявлений
+        {% if current_category %} в категории <span class="text-cyan-600">{{ current_category.name }}</span>{% endif %}
+    </h3>
 
     <div class="space-y-4">
         {% for announcement in announcements %}
@@ -281,12 +404,13 @@
                 </div>
 
                 <div class="flex justify-between items-end mt-4">
-                    <div class="text-sm text-gray-500">
+                    <div class="text-[13px] text-gray-500 flex flex-wrap gap-x-2 gap-y-1">
                         {% for key, value in announcement.attribute.items %}
-                        <span class="mr-4"><b>{{ key }}:</b> {{ value }}</span>
+                        <span class="after:content-['•'] last:after:content-[''] after:ml-2 after:text-gray-300">{{
+                            value }}</span>
                         {% endfor %}
                     </div>
-                    <div class="text-right">
+                    <div class="text-right shrink-0 ml-4">
                         <p class="text-xl font-bold text-[#002f34]">{{ announcement.price }} сум</p>
                     </div>
                 </div>
@@ -303,23 +427,66 @@
     <div class="flex justify-center mt-8">
         <nav class="flex gap-2">
             {% if page_obj.has_previous %}
-            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}" class="px-3 py-2 bg-white border border-gray-300 rounded text-[#002f34]">&laquo;</a>
+            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.previous_page_number }}"
+                class="px-3 py-2 bg-white border border-gray-300 rounded text-[#002f34]">&laquo;</a>
             {% endif %}
-            
+
             {% for i in paginator.page_range %}
-                {% if page_obj.number == i %}
-                <span class="px-3 py-2 bg-[#002f34] text-white border border-[#002f34] rounded">{{ i }}</span>
-                {% else %}
-                <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ i }}" class="px-3 py-2 bg-white border border-gray-300 rounded text-[#002f34] hover:bg-gray-50">{{ i }}</a>
-                {% endif %}
+            {% if page_obj.number == i %}
+            <span class="px-3 py-2 bg-[#002f34] text-white border border-[#002f34] rounded">{{ i }}</span>
+            {% else %}
+            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ i }}"
+                class="px-3 py-2 bg-white border border-gray-300 rounded text-[#002f34] hover:bg-gray-50">{{ i }}</a>
+            {% endif %}
             {% endfor %}
-            
+
             {% if page_obj.has_next %}
-            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}" class="px-3 py-2 bg-white border border-gray-300 rounded text-[#002f34]">&raquo;</a>
+            <a href="?{% for key, value in request.GET.items %}{% if key != 'page' %}{{ key }}={{ value }}&{% endif %}{% endfor %}page={{ page_obj.next_page_number }}"
+                class="px-3 py-2 bg-white border border-gray-300 rounded text-[#002f34]">&raquo;</a>
             {% endif %}
         </nav>
     </div>
     {% endif %}
 
 </main>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function updateDistrictsResult(regionId, selectedDistrictId = null) {
+        const districtSelect = document.getElementById('districtSelectResult');
+        districtSelect.innerHTML = '<option value="">Весь район</option>';
+
+        if (regionId && LOCATIONS_DATA[regionId]) {
+            LOCATIONS_DATA[regionId].forEach(district => {
+                const option = document.createElement('option');
+                option.value = district.id;
+                option.textContent = district.name;
+                if (selectedDistrictId && String(district.id) === String(selectedDistrictId)) {
+                    option.selected = true;
+                }
+                districtSelect.appendChild(option);
+            });
+        }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const regionId = urlParams.get('region');
+        const districtId = urlParams.get('district');
+
+        if (regionId) {
+            updateDistrictsResult(regionId, districtId);
+        }
+    });
+
+    // Close category menu when clicking outside
+    document.addEventListener('click', (e) => {
+        const toggle = document.getElementById('menu-toggle');
+        const wrapper = e.target.closest('.filter-wrapper');
+        if (!wrapper && toggle.checked) {
+            toggle.checked = false;
+        }
+    });
+</script>
 {% endblock %}

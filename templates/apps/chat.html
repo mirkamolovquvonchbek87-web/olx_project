@@ -17,9 +17,16 @@
 
     /* Fixed height layout for chat */
     .chat-layout {
-        height: calc(100vh - 64px);
-        /* Header height subtracted */
+        height: calc(100vh - 128px);
         overflow: hidden;
+    }
+    .container-custom {
+        max-width: 1000px;
+        width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 1rem;
+        padding-right: 1rem;
     }
 </style>
 {% endblock %}
@@ -27,198 +34,161 @@
 {% block search_section %}{% endblock %}
 
 {% block content %}
-<div class="chat-layout flex flex-col">
+<div class="chat-layout flex flex-col h-screen overflow-hidden">
     <!-- SUB-HEADER (Navigation) -->
-    <nav class="bg-white border-b border-gray-200 flex-shrink-0 hidden md:block z-10">
-        <div class="max-w-6xl mx-auto px-4 flex gap-6 text-[13px] font-semibold text-gray-500 overflow-x-auto">
-            <a href="{% url 'profile_page' %}" class="py-4 hover:text-[#002f34]">Объявления</a>
-            <a href="#" class="py-4 hover:text-[#002f34]">Панель Работодателя</a>
-            <a href="{% url 'user_chats_page' %}" class="py-4 border-b-2 border-[#002f34] text-[#002f34]">Чат</a>
-            <a href="#" class="py-4 hover:text-[#002f34]">Платежи и счет OLX</a>
-            <a href="#" class="py-4 hover:text-[#002f34]">Ищу работу</a>
-            <a href="#" class="py-4 hover:text-[#002f34]">Настройки</a>
-            <a href="#" class="py-4 hover:text-[#002f34]">Мой бизнес</a>
+    <nav class="bg-white border-b border-[#eef1f2] flex-shrink-0 hidden md:block z-20">
+        <div class="container-custom flex gap-8 text-[14px] font-bold text-[#406367]">
+            <a href="{% url 'profile_page' %}" class="py-5 hover:text-[#002f34] transition">Объявления</a>
+            <a href="{% url 'user_chats_page' %}" class="py-5 border-b-4 border-[#002f34] text-[#002f34]">Сообщения</a>
+            <a href="{% url 'payment_history_page' %}" class="py-5 hover:text-[#002f34] transition">Платежи и счет OLX</a>
+            <a href="{% url 'settings_page' %}" class="py-5 hover:text-[#002f34] transition font-bold">Настройки</a>
         </div>
     </nav>
 
     <!-- MAIN LAYOUT -->
-    <main class="flex-1 w-full max-w-6xl mx-auto flex bg-[#f2f4f5] overflow-hidden pt-6 pb-6 px-4">
+    <main class="flex-1 w-full bg-white overflow-hidden flex justify-center">
+        <div class="container-custom flex gap-6 h-full py-6">
 
-        <!-- LEFT SIDEBAR -->
-        <aside class="w-full md:w-[350px] flex flex-col mr-6 bg-transparent h-full hidden md:flex">
+            <!-- LEFT SIDEBAR -->
+            <aside class="w-[380px] flex flex-col shrink-0 h-full overflow-hidden hidden md:flex">
+                <div class="bg-white rounded-md shadow-sm flex flex-col h-full border border-[#eef1f2] overflow-hidden">
+                    
+                    <div class="p-6 border-b border-[#f2f4f5]">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-2xl font-bold text-[#002f34]">Сообщения</h2>
+                            <div class="flex gap-2">
+                                <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 text-[#002f34] transition">
+                                    <i class="fa-regular fa-bookmark"></i>
+                                </button>
+                                <button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 text-[#002f34] transition">
+                                    <i class="fa-regular fa-trash-can"></i>
+                                </button>
+                            </div>
+                        </div>
 
-            <!-- Top controls -->
-            <div class="bg-white rounded shadow-sm mb-4">
-                <div class="flex justify-around py-3 border-b border-gray-100 text-[13px] font-semibold text-[#002f34]">
-                    <a href="#" class="flex items-center gap-2 hover:text-cyan-600"><i
-                            class="fa-regular fa-bookmark"></i> Сохраненные</a>
-                    <a href="#" class="flex items-center gap-2 hover:text-cyan-600"><i
-                            class="fa-regular fa-trash-can"></i> Корзина</a>
-                </div>
-            </div>
+                        <div class="flex border-b-2 border-gray-100 gap-6 mb-6">
+                            <a href="{% url 'user_chats_page' %}?type={{ current_type }}&unread=0" class="pb-3 text-sm font-bold transition-all border-b-2 {% if current_unread == '0' %}border-[#002f34] text-[#002f34]{% else %}border-transparent text-[#7f979a] hover:text-[#002f34]{% endif %}">Все</a>
+                            <a href="{% url 'user_chats_page' %}?type={{ current_type }}&unread=1" class="pb-3 text-sm font-bold transition-all border-b-2 {% if current_unread == '1' %}border-[#002f34] text-[#002f34]{% else %}border-transparent text-[#7f979a] hover:text-[#002f34]{% endif %}">Непрочитанные</a>
+                        </div>
 
-            <div class="bg-white rounded shadow-sm flex-1 flex flex-col overflow-hidden">
-
-                <!-- Promo Banner -->
-                <div class="m-4 bg-[#e8f0fe] rounded p-4 text-center cursor-pointer hover:bg-[#dbe6fd] transition">
-                    <div class="flex items-center justify-center gap-2 mb-2 text-[#4285f4]">
-                        <i class="fa-solid fa-briefcase text-xl"></i>
+                        <div class="flex p-1 bg-[#f2f4f5] rounded-md">
+                            <a href="{% url 'user_chats_page' %}?type=buying&unread={{ current_unread }}" class="flex-1 py-1.5 text-center text-xs font-bold rounded-md transition {% if current_type == 'buying' %}bg-white text-[#002f34] shadow-sm{% else %}text-[#7f979a] hover:text-[#002f34]{% endif %}">Покупаю</a>
+                            <a href="{% url 'user_chats_page' %}?type=selling&unread={{ current_unread }}" class="flex-1 py-1.5 text-center text-xs font-bold rounded-md transition {% if current_type == 'selling' %}bg-white text-[#002f34] shadow-sm{% else %}text-[#7f979a] hover:text-[#002f34]{% endif %}">Продаю</a>
+                            <a href="{% url 'user_chats_page' %}?type=all&unread={{ current_unread }}" class="flex-1 py-1.5 text-center text-xs font-bold rounded-md transition {% if current_type == 'all' %}bg-white text-[#002f34] shadow-sm{% else %}text-[#7f979a] hover:text-[#002f34]{% endif %}">Все</a>
+                        </div>
                     </div>
-                    <p class="text-sm font-bold text-[#002f34] leading-tight mb-2">Ищете сообщения от кандидатов о ваших
-                        вакансиях?</p>
-                    <p class="text-xs text-[#002f34] font-bold underline">Перейти в Панель работодателя</p>
-                </div>
 
-                <!-- Tabs -->
-                <div class="px-4 pb-4 flex gap-2">
-                    <button
-                        class="flex-1 bg-white border border-gray-200 text-gray-500 font-bold py-2 rounded text-xs hover:bg-gray-50 transition">Покупаю</button>
-                    <button
-                        class="flex-1 bg-[#13d0a1] text-white font-bold py-2 rounded text-xs hover:bg-[#10b88f] transition shadow-sm">Продаю</button>
-                </div>
-
-                <!-- Scrollable Chats List -->
-                <div class="flex-1 overflow-y-auto scrollbar-hide border-t border-gray-100">
-                    <div
-                        class="px-4 py-3 text-[10px] font-bold text-[#002f34] uppercase tracking-wider bg-gray-50 border-b border-gray-100">
-                        Чаты</div>
-
-                    {% if not chats %}
-                    <div class="p-8 flex flex-col items-center justify-center text-center">
-                        <p class="text-sm text-gray-500 font-semibold mb-2">Нет сообщений</p>
-                    </div>
-                    {% else %}
-                    <div class="divide-y divide-gray-100">
+                    <div class="flex-1 overflow-y-auto scrollbar-hide divide-y divide-[#f2f4f5]">
                         {% for chat_item in chats %}
-                        {% if chat_item.user1 == request.user %}
-                        {% with other_user_item=chat_item.user2 %}
-                        <div class="{% if chat_item.id == chat.id %}bg-blue-50{% endif %}">
-                            {% include "apps/includes/chat_item.html" with chat=chat_item other_user=other_user_item %}
-                        </div>
-                        {% endwith %}
-                        {% else %}
-                        {% with other_user_item=chat_item.user1 %}
-                        <div class="{% if chat_item.id == chat.id %}bg-blue-50{% endif %}">
-                            {% include "apps/includes/chat_item.html" with chat=chat_item other_user=other_user_item %}
-                        </div>
-                        {% endwith %}
-                        {% endif %}
+                            {% if chat_item.user1 == request.user %}
+                                {% include "apps/includes/chat_item.html" with chat=chat_item other_user=chat_item.user2 %}
+                            {% else %}
+                                {% include "apps/includes/chat_item.html" with chat=chat_item other_user=chat_item.user1 %}
+                            {% endif %}
+                        {% empty %}
+                        <div class="p-12 text-center text-gray-400">Нет сообщений</div>
                         {% endfor %}
                     </div>
-                    {% endif %}
                 </div>
-            </div>
-        </aside>
+            </aside>
 
-        <!-- RIGHT MAIN AREA: ACTUAL CHAT INTERFACE -->
-        <section
-            class="flex-1 bg-white rounded shadow-sm flex flex-col h-full border border-gray-100 overflow-hidden relative">
-
-            <!-- Chat Header -->
-            <div class="h-16 border-b border-gray-100 flex items-center px-6 justify-between flex-shrink-0">
-                <div class="flex items-center gap-3">
-                    <a href="{% url 'user_chats_page' %}" class="md:hidden text-gray-500 mr-2"><i
-                            class="fa-solid fa-arrow-left"></i></a>
-                    <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden">
-                        <i class="fa-solid fa-user text-gray-400"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-bold text-[#002f34] text-sm">
-                            {{ other_user.first_name|default:other_user.email }}
-                        </h3>
-
-                        {% if chat.announcement %}
-                        <p class="text-xs text-gray-500 truncate max-w-[200px]">
-                            {{ chat.announcement.name }}
-                        </p>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="flex gap-4 text-gray-400 text-lg">
-                    <i class="fa-regular fa-bookmark hover:text-[#002f34] cursor-pointer"></i>
-                    <i class="fa-solid fa-ban hover:text-[#002f34] cursor-pointer"></i>
-                    <i class="fa-regular fa-flag hover:text-[#002f34] cursor-pointer"></i>
-                    <i class="fa-regular fa-trash-can hover:text-[#002f34] cursor-pointer"></i>
-                </div>
-            </div>
-
-            <!-- Messages Area (Scrollable) -->
-            <div id="messagesList" class="flex-1 overflow-y-auto p-6 flex flex-col gap-4 bg-[#fcfcfc]">
-                <div class="flex justify-center my-2">
-                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wider bg-transparent px-2">
-                        {% if has_messages %} История сообщений {% else %} Начало переписки {% endif %}
-                    </span>
-                </div>
-
-                {% for msg in messages reversed %}
-                <div class="flex {% if msg.from_user == request.user %}justify-end{% else %}justify-start{% endif %}">
-                    <div class="max-w-[75%] md:max-w-[60%]
-                            {% if msg.from_user == request.user %}
-                                bg-[#d4ecff] text-[#002f34]
-                            {% else %}
-                                bg-gray-100 text-[#002f34]
-                            {% endif %}
-                            rounded-lg px-4 py-2 relative group shadow-sm">
-
-                        {% if msg.file %}
-                        {% if msg.is_image %}
-                        <img src="{{ msg.file.url }}" class="max-w-full rounded mb-2">
-                        {% else %}
-                        <a href="{{ msg.file.url }}" download
-                            class="flex items-center gap-2 bg-white p-2 text-sm text-blue-500 rounded mb-2 shadow-sm hover:bg-gray-50">
-                            <i class="fa-solid fa-file"></i>
-                            <span>Download file</span>
+            <!-- RIGHT MAIN AREA -->
+            <section class="flex-1 bg-white rounded-md shadow-sm border border-[#eef1f2] flex flex-col h-full overflow-hidden relative">
+                
+                <!-- Chat Header -->
+                <div class="h-20 border-b border-[#f2f4f5] flex items-center px-8 justify-between flex-shrink-0 bg-white z-10">
+                    <div class="flex items-center gap-4">
+                        <a href="{% url 'user_chats_page' %}" class="md:hidden text-[#002f34] mr-2">
+                            <i class="fa-solid fa-arrow-left text-xl"></i>
                         </a>
-                        {% endif %}
-                        {% endif %}
-
-                        {% if msg.message %}
-                        <p class="text-[14px] leading-relaxed break-words">
-                            {{ msg.message }}
-                        </p>
-                        {% endif %}
-
-                        <div class="text-[10px] text-right mt-1 opacity-60 flex items-center justify-end gap-1">
-                            {{ msg.created_at|date:"H:i" }}
-                            {% if msg.from_user == request.user %}
-                            <i class="fa-solid fa-check{% if msg.is_read %}-double text-blue-500{% endif %}"></i>
+                        <div class="w-10 h-10 rounded-full bg-[#f2f4f5] flex items-center justify-center overflow-hidden border border-[#eef1f2]">
+                            <i class="fa-solid fa-user text-[#7f979a]"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-[#002f34] text-[16px] leading-tight">
+                                {{ other_user.first_name|default:other_user.email }}
+                            </h3>
+                            {% if chat.announcement %}
+                            <p class="text-[12px] text-[#7f979a] font-normal truncate max-w-[240px]">
+                                {{ chat.announcement.name }}
+                            </p>
                             {% endif %}
                         </div>
                     </div>
-                </div>
-                {% endfor %}
-            </div>
-
-            <!-- Input Area -->
-            <div class="p-4 border-t border-gray-100 bg-white flex-shrink-0">
-                <div id="filePreview"
-                    class="hidden mb-3 flex items-center gap-2 text-xs text-blue-800 bg-blue-50 py-2 px-3 rounded w-max border border-blue-100">
-                    <i class="fa-solid fa-file"></i> <span id="fileName"
-                        class="font-semibold truncate max-w-[150px]"></span>
-                    <i class="fa-solid fa-xmark cursor-pointer ml-2 hover:text-red-500 text-base"
-                        onclick="clearFile()"></i>
-                </div>
-                <div class="flex gap-3 items-end">
-                    <label
-                        class="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-[#002f34] hover:bg-gray-100 rounded-full cursor-pointer transition flex-shrink-0">
-                        <i class="fa-solid fa-paperclip text-xl"></i>
-                        <input type="file" id="fileInput" class="hidden">
-                    </label>
-
-                    <div
-                        class="flex-1 bg-gray-50 border border-gray-200 rounded-2xl overflow-hidden flex flex-col focus-within:border-gray-400 focus-within:bg-white transition-colors">
-                        <textarea id="messageInput" rows="1" placeholder="Напишите сообщение..."
-                            class="w-full text-[15px] p-3 outline-none resize-none bg-transparent"
-                            style="min-height: 44px; max-height: 120px; overflow-y: auto;"></textarea>
+                    <div class="flex gap-6 text-[#7f979a] text-lg">
+                        <i class="fa-regular fa-bookmark hover:text-[#002f34] cursor-pointer transition"></i>
+                        <i class="fa-solid fa-ban hover:text-[#fa5252] cursor-pointer transition"></i>
+                        <i class="fa-regular fa-trash-can hover:text-[#fa5252] cursor-pointer transition"></i>
                     </div>
-
-                    <button onclick="sendMessage()"
-                        class="bg-[#002f34] text-white w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#004d55] transition flex-shrink-0 shadow-sm">
-                        <i class="fa-solid fa-paper-plane"></i>
-                    </button>
                 </div>
-            </div>
-        </section>
+
+                <!-- Messages Area -->
+                <div id="messagesList" class="flex-1 overflow-y-auto p-8 flex flex-col gap-6 bg-[#fcfdfd]">
+                    {% for msg in messages reversed %}
+                    <div class="flex {% if msg.from_user == request.user %}justify-end{% else %}justify-start{% endif %}">
+                        <div class="max-w-[70%] 
+                                {% if msg.from_user == request.user %}
+                                    bg-[#d4ecff] text-[#002f34] rounded-br-[4px]
+                                {% else %}
+                                    bg-[#f2f4f5] text-[#002f34] rounded-bl-[4px]
+                                {% endif %}
+                                rounded-[18px] px-5 py-3 relative group shadow-sm border border-transparent">
+                            
+                            {% if msg.file %}
+                                {% if msg.is_image %}
+                                <img src="{{ msg.file.url }}" class="max-w-full rounded-lg mb-2 cursor-pointer hover:opacity-95 transition">
+                                {% else %}
+                                <a href="{{ msg.file.url }}" download class="flex items-center gap-3 bg-white/50 p-3 text-sm text-[#3a77ff] rounded-lg mb-2 hover:bg-white transition border border-[#d4ecff]">
+                                    <i class="fa-solid fa-file-arrow-down text-lg"></i>
+                                    <span class="font-bold">Скачать файл</span>
+                                </a>
+                                {% endif %}
+                            {% endif %}
+
+                            {% if msg.message %}
+                            <p class="text-[15px] leading-relaxed break-words font-medium">
+                                {{ msg.message }}
+                            </p>
+                            {% endif %}
+
+                            <div class="text-[10px] text-right mt-1 opacity-50 flex items-center justify-end gap-1.5 font-bold">
+                                {{ msg.created_at|date:"H:i" }}
+                                {% if msg.from_user == request.user %}
+                                <i class="fa-solid fa-check{% if msg.is_read %}-double text-[#3a77ff]{% endif %}"></i>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Input Area -->
+                <div class="p-6 border-t border-[#f2f4f5] bg-white flex-shrink-0">
+                    <div id="filePreview" class="hidden mb-4 flex items-center gap-3 text-xs text-[#3a77ff] bg-[#f0f7ff] py-2.5 px-4 rounded-full w-max border border-[#d4ecff]">
+                        <i class="fa-solid fa-paperclip"></i>
+                        <span id="fileName" class="font-bold truncate max-w-[200px]"></span>
+                        <i class="fa-solid fa-circle-xmark cursor-pointer ml-2 hover:text-[#fa5252] text-lg transition" onclick="clearFile()"></i>
+                    </div>
+                    
+                    <div class="flex gap-4 items-end">
+                        <label class="w-12 h-12 flex items-center justify-center text-[#7f979a] hover:text-[#002f34] hover:bg-[#f2f4f5] rounded-full cursor-pointer transition flex-shrink-0">
+                            <i class="fa-solid fa-paperclip text-xl"></i>
+                            <input type="file" id="fileInput" class="hidden">
+                        </label>
+
+                        <div class="flex-1 bg-[#f2f4f5] border border-transparent rounded-[24px] overflow-hidden flex flex-col focus-within:border-[#ced8d9] focus-within:bg-white transition-all shadow-inner">
+                            <textarea id="messageInput" rows="1" placeholder="Напишите сообщение..."
+                                class="w-full text-[15px] p-4 outline-none resize-none bg-transparent text-[#002f34] font-medium"
+                                style="min-height: 52px; max-height: 150px; overflow-y: auto;"></textarea>
+                        </div>
+
+                        <button onclick="sendMessage()" class="bg-[#002f34] text-white w-12 h-12 rounded-full flex items-center justify-center hover:bg-[#004d55] transition flex-shrink-0 shadow-lg active:scale-95 transform">
+                            <i class="fa-solid fa-paper-plane text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+        </div>
     </main>
 </div>
 {% endblock %}
@@ -266,12 +236,12 @@
         let msgHtml = data.message ? `<p class="text-[14px] leading-relaxed break-words">${data.message}</p>` : "";
 
         wrapper.innerHTML = `
-            <div class="max-w-[75%] md:max-w-[60%] ${isMe ? "bg-[#d4ecff] text-[#002f34]" : "bg-gray-100 text-[#002f34]"} rounded-lg px-4 py-2 relative group shadow-sm mt-4">
+            <div class="max-w-[70%] ${isMe ? "bg-[#d4ecff] text-[#002f34] rounded-br-[4px]" : "bg-[#f2f4f5] text-[#002f34] rounded-bl-[4px]"} rounded-[18px] px-5 py-3 relative group shadow-sm mt-4 border border-transparent">
                 ${fileHtml}
                 ${msgHtml}
-                <div class="text-[10px] text-right mt-1 opacity-60 flex items-center justify-end gap-1">
+                <div class="text-[10px] text-right mt-1 opacity-50 flex items-center justify-end gap-1.5 font-bold">
                     ${data.created_at || "Только что"}
-                    ${isMe ? '<i class="fa-solid fa-check text-gray-500"></i>' : ''}
+                    ${isMe ? '<i class="fa-solid fa-check text-[#3a77ff]"></i>' : ''}
                 </div>
             </div>
         `;

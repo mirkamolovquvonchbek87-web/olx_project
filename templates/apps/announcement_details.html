@@ -8,15 +8,15 @@
     <div class="max-w-6xl mx-auto px-4">
 
         <!-- Breadcrumbs -->
-        <div class="text-sm text-gray-500 mb-6 flex gap-2 items-center flex-wrap">
-            <a href="{% url 'main_page' %}" class="hover:text-[#002f34] transition font-medium">Главная</a>
-            <span><i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i></span>
+        <div class="text-xs text-gray-500 mb-6 flex gap-2 items-center flex-wrap">
+            <a href="{% url 'main_page' %}" class="hover:underline transition">Главная</a>
+            <span>/</span>
             {% if announcement.category %}
             <a href="{% url 'announcement_list_page' slug=announcement.category.slug %}"
-                class="hover:text-[#002f34] transition font-medium">{{ announcement.category.name }}</a>
-            <span><i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i></span>
+                class="hover:underline transition text-gray-500">{{ announcement.category.name }}</a>
+            <span>/</span>
             {% endif %}
-            <span class="text-gray-400">{{ announcement.name|truncatechars:30 }}</span>
+            <span class="text-gray-400 font-normal">{{ announcement.name|truncatechars:40 }}</span>
         </div>
 
         <!-- Main Content Grid -->
@@ -48,13 +48,13 @@
                         {% if announcement.images.count > 1 %}
                         <!-- Controls -->
                         <button
-                            onclick="document.getElementById('imageSlider').scrollBy({left: -300, behavior: 'smooth'})"
-                            class="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white hover:bg-gray-100 rounded-full flex items-center justify-center text-xl text-[#002f34] shadow transition"><i
-                                class="fa-solid fa-chevron-left ml-[-2px]"></i></button>
+                            onclick="document.getElementById('imageSlider').scrollBy({left: -document.getElementById('imageSlider').clientWidth, behavior: 'smooth'})"
+                            class="absolute left-0 top-0 bottom-0 w-12 bg-black/10 hover:bg-black/30 flex items-center justify-center text-2xl text-white transition z-10"><i
+                                class="fa-solid fa-chevron-left"></i></button>
                         <button
-                            onclick="document.getElementById('imageSlider').scrollBy({left: 300, behavior: 'smooth'})"
-                            class="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white hover:bg-gray-100 rounded-full flex items-center justify-center text-xl text-[#002f34] shadow transition"><i
-                                class="fa-solid fa-chevron-right mr-[-2px]"></i></button>
+                            onclick="document.getElementById('imageSlider').scrollBy({left: document.getElementById('imageSlider').clientWidth, behavior: 'smooth'})"
+                            class="absolute right-0 top-0 bottom-0 w-12 bg-black/10 hover:bg-black/30 flex items-center justify-center text-2xl text-white transition z-10"><i
+                                class="fa-solid fa-chevron-right"></i></button>
                         {% endif %}
                         {% else %}
                         <div class="w-full h-full flex flex-col items-center justify-center bg-gray-100 text-gray-400">
@@ -76,11 +76,11 @@
                                     {% endif %}
                                 </p>
 
-                                <h1 class="text-xl md:text-2xl font-bold text-[#002f34] break-words">
+                                <h1 class="text-lg md:text-[22px] font-semibold text-[#002f34] break-words uppercase">
                                     {{ announcement.name }}
                                 </h1>
-
-                                <div class="text-2xl font-bold text-[#002f34] mt-4">
+                                
+                                <div class="text-[32px] md:text-[40px] font-bold text-[#002f34] mt-6 tracking-tight">
                                     {{ announcement.price|default:"0" }} сум
                                 </div>
                             </div>
@@ -96,16 +96,16 @@
                 {% if announcement.attribute %}
                 <!-- Attributes -->
                 <div class="bg-white rounded shadow-sm p-6">
-                    <h2 class="text-sm text-[#002f34] font-bold uppercase mb-4 tracking-wider">Характеристики</h2>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-sm">
+                    <h2 class="text-sm text-[#002f34] font-bold uppercase mb-6 tracking-wider border-b border-gray-100 pb-3">Характеристики</h2>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-5 gap-x-12 text-sm">
                         {% if announcement.attribute %}
                         {% for key, value in announcement.attribute.items %}
-                        <div class="flex justify-between border-b border-gray-100 pb-2">
-                            <span class="text-gray-500">
+                        <div class="flex items-center gap-3 group">
+                            <span class="text-gray-400 min-w-[120px] shrink-0">
                                 {{ key|default:"-" }}
                             </span>
 
-                            <span class="text-[#002f34] font-semibold text-right max-w-[50%] break-words">
+                            <span class="text-[#002f34] font-semibold flex-grow">
                                 {{ value|default:"-" }}
                             </span>
                         </div>
@@ -201,9 +201,9 @@
                 </div>
 
                 <!-- Views Count -->
-                <div class="px-2 mt-4 flex items-center text-xs text-gray-400 gap-2">
-                    <i class="fa-regular fa-eye text-sm"></i> Просмотры: <span
-                        class="font-bold">{{announcement.view_count }}</span>
+                <div class="px-2 mt-4 flex items-center text-sm text-[#002f34] gap-2">
+                    <span class="text-gray-400">Просмотры:</span> <span
+                        class="font-bold text-[#002f34]">{{announcement.view_count }}</span>
                 </div>
 
                 <!-- Location Box -->

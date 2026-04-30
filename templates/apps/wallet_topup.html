@@ -1,0 +1,142 @@
+{% extends 'apps/base.html' %}
+{% load static %}
+
+{% block title %}Пополнение счета - OLX{% endblock %}
+
+{% block extra_head %}
+<style>
+    .topup-container {
+        max-width: 960px;
+        margin: 0 auto;
+    }
+    .amount-card {
+        transition: all 0.2s ease;
+        border: 1px solid #eef1f2;
+    }
+    .amount-card:hover {
+        border-color: #3a77ff;
+    }
+    .amount-card.active {
+        border-color: #3a77ff;
+        background-color: #f8faff;
+        box-shadow: 0 4px 6px -1px rgba(58, 119, 255, 0.1);
+    }
+    .radio-circle {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #ced4da;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    .amount-card.active .radio-circle {
+        border-color: #002f34;
+    }
+    .radio-inner {
+        width: 10px;
+        height: 10px;
+        background-color: #002f34;
+        border-radius: 50%;
+        display: none;
+    }
+    .amount-card.active .radio-inner {
+        display: block;
+    }
+    .info-banner {
+        background-color: #e6f0ff;
+        border-radius: 4px;
+        color: #002f34;
+    }
+    .btn-outline {
+        border: 2px solid #002f34;
+        color: #002f34;
+    }
+    .btn-outline:hover {
+        background-color: #f2f4f5;
+    }
+</style>
+{% endblock %}
+
+{% block search_section %}{% endblock %}
+
+{% block content %}
+<div class="bg-[#f2f4f5] min-h-screen py-12">
+    <div class="topup-container px-4">
+        
+        <!-- STEP 1 -->
+        <div class="flex items-center gap-4 mb-8">
+            <div class="w-10 h-10 bg-[#002f34] text-white rounded-full flex items-center justify-center font-bold">1</div>
+            <h1 class="text-xl font-bold text-[#002f34]">Выберите сумму пополнения</h1>
+        </div>
+
+        <!-- INFO BANNER -->
+        <div class="info-banner p-4 flex gap-4 items-start mb-8">
+            <div class="shrink-0 mt-0.5">
+                <i class="fa-solid fa-credit-card text-[#3a77ff]"></i>
+            </div>
+            <p class="text-sm">Кошелек используется для оплаты всех платных услуг OLX (реклама, размещение объявлении и покупка пакетов).</p>
+        </div>
+
+        <!-- AMOUNT OPTIONS -->
+        <div class="space-y-3 mb-12">
+            <div class="amount-card bg-white rounded p-5 flex items-center gap-4 cursor-pointer" onclick="selectAmount(this, '6 000')">
+                <div class="radio-circle"><div class="radio-inner"></div></div>
+                <div class="text-[#002f34] font-medium">6 000 сум</div>
+            </div>
+            <div class="amount-card bg-white rounded p-5 flex items-center gap-4 cursor-pointer" onclick="selectAmount(this, '12 000')">
+                <div class="radio-circle"><div class="radio-inner"></div></div>
+                <div class="text-[#002f34] font-medium">12 000 сум</div>
+            </div>
+            <div class="amount-card bg-white rounded p-5 flex items-center gap-4 cursor-pointer" onclick="selectAmount(this, '28 000')">
+                <div class="radio-circle"><div class="radio-inner"></div></div>
+                <div class="text-[#002f34] font-medium">28 000 сум</div>
+            </div>
+            <div class="amount-card bg-white rounded p-5 flex items-center gap-4 cursor-pointer" onclick="selectAmount(this, '48 000')">
+                <div class="radio-circle"><div class="radio-inner"></div></div>
+                <div class="text-[#002f34] font-medium">48 000 сум</div>
+            </div>
+            <div class="amount-card active bg-white rounded p-5 flex items-center gap-4 cursor-pointer" onclick="selectAmount(this, '92 000')">
+                <div class="radio-circle"><div class="radio-inner"></div></div>
+                <div class="text-[#002f34] font-medium">92 000 сум</div>
+            </div>
+            <div class="amount-card bg-white rounded p-5 flex items-center gap-4 cursor-pointer" onclick="selectAmount(this, '115 000')">
+                <div class="radio-circle"><div class="radio-inner"></div></div>
+                <div class="text-[#002f34] font-medium">115 000 сум</div>
+            </div>
+            <div class="amount-card bg-white rounded p-5 flex items-center gap-4 cursor-pointer" onclick="selectAmount(this, '300 000')">
+                <div class="radio-circle"><div class="radio-inner"></div></div>
+                <div class="text-[#002f34] font-medium">300 000 сум</div>
+            </div>
+            <div class="amount-card bg-white rounded p-5 flex items-center gap-4 cursor-pointer" onclick="selectAmount(this, '800 000')">
+                <div class="radio-circle"><div class="radio-inner"></div></div>
+                <div class="text-[#002f34] font-medium">800 000 сум</div>
+            </div>
+        </div>
+
+        <!-- FOOTER BUTTONS -->
+        <div class="flex justify-end gap-4 pt-8 border-t border-[#eef1f2]">
+            <a href="{% url 'profile_page' %}" class="btn-outline px-10 py-3 rounded font-bold text-sm transition">
+                Отменить
+            </a>
+            <button onclick="goToCheckout()" class="bg-[#002f34] text-white px-12 py-3 rounded font-bold text-sm hover:bg-[#004d55] transition shadow-md active:scale-95 transform">
+                Оплатить
+            </button>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    let selectedAmount = '92 000';
+    function selectAmount(el, amount) {
+        document.querySelectorAll('.amount-card').forEach(card => card.classList.remove('active'));
+        el.classList.add('active');
+        selectedAmount = amount;
+    }
+    function goToCheckout() {
+        window.location.href = "{% url 'wallet_checkout' %}?amount=" + encodeURIComponent(selectedAmount);
+    }
+</script>
+{% endblock %}

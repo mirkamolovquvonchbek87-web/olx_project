@@ -1,0 +1,90 @@
+{% extends 'apps/base.html' %}
+{% load static %}
+
+{% block title %}Оформление заказа - {{ announcement.name }} - OLX{% endblock %}
+
+{% block extra_head %}
+<style>
+    .checkout-container {
+        max-width: 960px;
+        margin: 0 auto;
+    }
+    .payment-method-card {
+        transition: all 0.2s ease;
+        border: 2px solid transparent;
+    }
+    .payment-method-card.active {
+        border-color: #3a77ff;
+        background-color: #f8faff;
+    }
+    .btn-cancel {
+        border: 2px solid #002f34;
+        color: #002f34;
+    }
+    .btn-cancel:hover {
+        background-color: #f2f4f5;
+    }
+    .btn-pay {
+        background-color: #002f34;
+        color: white;
+    }
+    .btn-pay:hover {
+        background-color: #004d55;
+    }
+</style>
+{% endblock %}
+
+{% block search_section %}{% endblock %}
+
+{% block content %}
+<div class="bg-[#f2f4f5] min-h-screen py-12">
+    <div class="checkout-container px-4">
+        
+        <!-- SWOTKA (Summary) -->
+        <h1 class="text-2xl font-black text-[#002f34] mb-4">Сводка</h1>
+        <div class="text-[13px] font-bold text-[#002f34] uppercase tracking-wider mb-6">{{ announcement.name }}</div>
+
+        <div class="bg-white rounded p-6 shadow-sm mb-12 border border-[#eef1f2]">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                    <span class="text-[#002f34] font-medium">Пакет «{{ package }}»</span>
+                    <a href="{% url 'announcement_promote' announcement.pk %}" class="text-[#3a77ff] text-xs hover:underline">Изменить</a>
+                </div>
+                <div class="text-[#002f34] font-black">{{ price }} сум</div>
+            </div>
+        </div>
+
+        <!-- PAYMENT METHOD -->
+        <h2 class="text-xl font-bold text-[#002f34] mb-8">Как вы хотите оплатить?</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            <div class="payment-method-card active bg-white rounded p-8 flex flex-col items-center justify-center text-center shadow-sm cursor-pointer">
+                <div class="w-12 h-12 flex items-center justify-center mb-4 text-[#7f979a]">
+                    <i class="fa-solid fa-wallet text-3xl"></i>
+                </div>
+                <div class="text-[#002f34] font-bold text-sm mb-1">Счет OLX.uz</div>
+                <div class="text-[#7f979a] text-[11px]">Доступно 0 сум</div>
+                <a href="{% url 'wallet_topup' %}" class="text-[#3a77ff] text-[11px] mt-2 hover:underline">Пополнить кошелек</a>
+            </div>
+        </div>
+
+        <!-- SUMMARY & BUTTONS -->
+        <div class="flex flex-col items-end">
+            <div class="flex items-baseline gap-4 mb-8">
+                <span class="text-xl font-bold text-[#002f34]">Общая сумма:</span>
+                <span class="text-2xl font-black text-[#002f34]">{{ price }} сум</span>
+            </div>
+
+            <div class="bg-white rounded p-6 shadow-sm w-full flex justify-end gap-4 border border-[#eef1f2]">
+                <a href="{% url 'announcement_promote' announcement.pk %}" class="btn-cancel px-8 py-3 rounded font-bold text-sm transition">
+                    Отменить
+                </a>
+                <button class="btn-pay px-12 py-3 rounded font-bold text-sm transition shadow-md">
+                    Оплатить
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

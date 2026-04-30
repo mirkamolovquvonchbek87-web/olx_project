@@ -132,13 +132,17 @@
     {% block content %}{% endblock %}
 
     <!-- FOOTER -->
-    {% block footer %}
     <footer class="py-10 text-center text-gray-400 text-xs border-t border-gray-200 mt-12 bg-white">
         <div class="max-w-6xl mx-auto px-4">
+            <div class="mb-4 flex justify-center gap-6 text-[#002f34] font-medium transition">
+                <a href="{% url 'help_page' %}" class="hover:underline">Помощь и Обратная связь</a>
+                <a href="#" class="hover:underline">Платные услуги</a>
+                <a href="#" class="hover:underline">Бизнес на OLX</a>
+                <a href="#" class="hover:underline">Для прессы</a>
+            </div>
             <p>&copy; 2026 OLX Clone. Все права защищены.</p>
         </div>
     </footer>
-    {% endblock %}
 
     <script>
         const LOCATIONS_DATA = {

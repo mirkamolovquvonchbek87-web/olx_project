@@ -2,8 +2,15 @@ from django.contrib import admin
 from django.contrib.admin import ModelAdmin, TabularInline
 from django.db.models import JSONField
 from django_json_widget.widgets import JSONEditorWidget
-from apps.models import User, Category, Announcement, Chat, Message, Region, District
+from apps.models import User, Category, Announcement, Chat, Message, Region, District, Transaction
 from apps.models.announcements import AnnouncementImage, FavouriteAnnouncement, ModeratedAnnouncement
+
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = ['user', 'amount', 'transaction_type', 'status', 'created_at']
+    list_filter = ['transaction_type', 'status', 'created_at']
+    search_fields = ['user__username', 'description']
 
 
 # Inlines
@@ -87,6 +94,14 @@ class AnnouncementModelAdmin(ModelAdmin):
         }),
     )
 
+    def image_thumbnail(self, obj):
+        first_img = obj.images.first()
+        if first_img and first_img.image:
+            from django.utils.safestring import mark_safe
+            return mark_safe(f'<img src="{first_img.image.url}" width="50" height="50" style="object-fit: cover;" />')
+        return "-"
+    image_thumbnail.short_description = "Rasm"
+
     def save_model(self, request, obj, form, change):
         if change:
             old_obj = Announcement.objects.get(pk=obj.pk)
@@ -98,19 +113,30 @@ class AnnouncementModelAdmin(ModelAdmin):
 
 @admin.register(ModeratedAnnouncement)
 class ModeratedAnnouncementAdmin(AnnouncementModelAdmin):
-    list_display = ['name', 'price', 'status', 'user', 'category', 'created_at']
-    actions = ['make_active']
+    list_display = ['image_thumbnail', 'name', 'price', 'status', 'user', 'category', 'created_at']
+    actions = ['make_active', 'make_moderated', 'make_rejected']
+    list_editable = ['status']
 
     def get_queryset(self, request):
         return super().get_queryset(request).filter(
             status__in=[Announcement.Status.WAITING, Announcement.Status.MODERATED]
         )
 
-    @admin.action(description="Tanlangan e'lonlarni Active (Faol) qilish")
+    @admin.action(description="Tanlanganlarni Active (Faol) qilish")
     def make_active(self, request, queryset):
         from django.utils import timezone
         updated = queryset.update(status=Announcement.Status.ACTIVE, published_at=timezone.now())
         self.message_user(request, f"{updated} ta e'lon faollashtirildi.")
+
+    @admin.action(description="Tanlanganlarni Moderatsiyaga o'tkazish")
+    def make_moderated(self, request, queryset):
+        updated = queryset.update(status=Announcement.Status.MODERATED)
+        self.message_user(request, f"{updated} ta e'lon moderatsiyaga o'tkazildi.")
+
+    @admin.action(description="Tanlanganlarni Rad etish (Unactive)")
+    def make_rejected(self, request, queryset):
+        updated = queryset.update(status=Announcement.Status.UNACTIVE)
+        self.message_user(request, f"{updated} ta e'lon rad etildi.")
 
 
 @admin.register(Chat)

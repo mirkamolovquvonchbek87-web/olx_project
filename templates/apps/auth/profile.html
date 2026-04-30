@@ -337,32 +337,37 @@
             <div class="flex flex-col items-end">
                 <div class="wallet-box">
                     <div class="wallet-info">
-                        <div>Баланс: 0 сум</div>
-                        <div>Доступный баланс: 0 бонусов</div>
+                        <div class="text-[#002f34] text-base"><span class="font-normal">Баланс:</span> <span class="font-bold">{{ user.balance|default:0 }} сум</span></div>
+                        <div class="text-[#002f34] text-xs mt-1">Доступный баланс: <span class="font-bold">{{ user.bonus|default:0 }} бонусов</span></div>
                     </div>
-                    <div class="info-circle">i</div>
-                    <div class="btns">
-                        <button class="btn-profile">Пополнить кошелёк</button>
-                        <button class="btn-profile dark">Купить пакет</button>
+                    <div class="info-circle cursor-help" title="Ваш рекламный баланс">i</div>
+                    <div class="btns ml-4">
+                        <a href="{% url 'wallet_topup' %}" class="btn-profile hover:bg-gray-50 transition flex items-center justify-center">Пополнить кошелёк</a>
+                        <button class="btn-profile dark hover:bg-[#004f56] transition">Купить пакет</button>
                     </div>
                 </div>
-                <a href="#" class="learn-more">Узнать больше</a>
+                <a href="{% url 'wallet_topup' %}" class="learn-more">Узнать больше</a>
             </div>
         </div>
 
-        <div class="banner-warning">
-            <strong>Обратите внимание, на OLX.UZ нет службы доставки.</strong>
-            В целях безопасности, игнорируйте любые сообщения, которые вы получаете со ссылками на любые службы
-            доставки.
-            <br />
-            <a href="#">Узнайте, как безопасно делать покупки в Интернете</a>
+        {% if not user.avatar or not user.first_name %}
+        <div class="banner-warning flex items-start gap-4">
+            <div class="shrink-0 mt-1">
+                <i class="fa-solid fa-circle-exclamation text-xl"></i>
+            </div>
+            <div>
+                <strong>Заполните ваш профиль.</strong>
+                Это поможет покупателям доверять вам больше. Добавьте фото и имя.
+                <br />
+                <a href="{% url 'settings_page' %}">Перейти к настройкам профиля</a>
+            </div>
         </div>
+        {% endif %}
 
         <div class="main-tabs-profile">
-            <a href="#" class="main-tab-profile active">Объявления</a>
-            <a href="{% url 'user_chats_page' %}" class="main-tab-profile">Чат</a>
-            <a href="#" class="main-tab-profile">Платежи и счёт OLX</a>
-            <a href="#" class="main-tab-profile">Ищу работу</a>
+            <a href="{% url 'profile_page' %}" class="main-tab-profile active">Объявления</a>
+            <a href="{% url 'user_chats_page' %}" class="main-tab-profile">Сообщения</a>
+            <a href="{% url 'payment_history_page' %}" class="main-tab-profile">Платежи и счёт OLX</a>
             <a href="{% url 'settings_page' %}" class="main-tab-profile">Настройки</a>
         </div>
     </div>
@@ -372,13 +377,23 @@
 
             <div class="sub-row-profile">
                 <div class="sub-tabs-profile">
-                    <a href="?status={{ Status.ACTIVE }}" class="sub-tab-profile {% if current_status == Status.ACTIVE %}active{% endif %}">Активные</a>
-                    <a href="?status={{ Status.WAITING }}" class="sub-tab-profile {% if current_status == Status.WAITING %}active{% endif %}">Ожидающие</a>
-                    <a href="?status={{ Status.UNPAID }}" class="sub-tab-profile {% if current_status == Status.UNPAID %}active{% endif %}">Неоплаченные</a>
-                    <a href="?status={{ Status.UNACTIVE }}" class="sub-tab-profile {% if current_status == Status.UNACTIVE %}active{% endif %}">Неактивные</a>
-                    <a href="?status={{ Status.MODERATED }}" class="sub-tab-profile {% if current_status == Status.MODERATED %}active{% endif %}">Отклоненные</a>
+                    <a href="?status={{ Status.ACTIVE }}" class="sub-tab-profile {% if current_status == Status.ACTIVE %}active{% endif %}">
+                        Активные <span class="text-xs font-normal opacity-60 ml-1">({{ counts.active|default:0 }})</span>
+                    </a>
+                    <a href="?status={{ Status.WAITING }}" class="sub-tab-profile {% if current_status == Status.WAITING %}active{% endif %}">
+                        Ожидающие <span class="text-xs font-normal opacity-60 ml-1">({{ counts.waiting|default:0 }})</span>
+                    </a>
+                    <a href="?status={{ Status.MODERATED }}" class="sub-tab-profile {% if current_status == Status.MODERATED %}active{% endif %}">
+                        В модерации <span class="text-xs font-normal opacity-60 ml-1">({{ counts.moderated|default:0 }})</span>
+                    </a>
+                    <a href="?status={{ Status.UNACTIVE }}" class="sub-tab-profile {% if current_status == Status.UNACTIVE %}active{% endif %}">
+                        Неактивные <span class="text-xs font-normal opacity-60 ml-1">({{ counts.unactive|default:0 }})</span>
+                    </a>
+                    <a href="?status={{ Status.UNPAID }}" class="sub-tab-profile {% if current_status == Status.UNPAID %}active{% endif %}">
+                        Неоплаченные <span class="text-xs font-normal opacity-60 ml-1">({{ counts.unpaid|default:0 }})</span>
+                    </a>
                 </div>
-                <a href="#" class="limit-link">Просмотреть лимит бесплатных объявлений</a>
+                <a href="#" class="limit-link">Лимиты объявлений</a>
             </div>
 
             <div class="filters-row-profile">
@@ -389,10 +404,13 @@
 
                 <div class="control-profile search-box-profile">
                     <i class="fa-solid fa-magnifying-glass text-gray-400"></i>
-                    <input type="text" placeholder="Искать по заголовку, ID или местоположению" class="w-full bg-transparent outline-none text-sm text-gray-600">
+                    <input type="text" placeholder="Искать по заголовку, ID или местоположению" class="w-full bg-transparent outline-none text-sm text-[#002f34]">
                 </div>
 
-                <div class="control-profile select-profile">
+                <div class="control-profile select-profile relative">
+                    <select class="absolute inset-0 opacity-0 cursor-pointer w-full z-10">
+                        <option value="">Любая категория</option>
+                    </select>
                     <span>Любая категория</span>
                     <span class="chev-profile"></span>
                 </div>
@@ -413,18 +431,18 @@
                 </div>
             </div>
 
-            <div class="counter-profile">Показано {{ announcements.count }} из {{ announcements.count }} объявлений</div>
+            <div class="counter-profile mt-6 font-medium">Показано {{ announcements.count }} объявлений</div>
             <div class="divider-profile"></div>
 
             {% if announcements %}
-                <div class="grid grid-cols-1 gap-4 mt-6">
+                <div class="flex flex-col gap-4 mt-6">
                     {% for ann in announcements %}
                         {% include 'apps/includes/profile_product_card.html' with ann=ann %}
                     {% endfor %}
                 </div>
             {% else %}
-                <div class="empty-state-profile">
-                    <svg class="empty-illustration-profile" viewBox="0 0 220 170" xmlns="http://www.w3.org/2000/svg">
+                <div class="empty-state-profile bg-white rounded-lg shadow-sm mt-8 border border-gray-100">
+                    <svg class="empty-illustration-profile opacity-80" viewBox="0 0 220 170" xmlns="http://www.w3.org/2000/svg">
                         <circle cx="75" cy="115" r="24" fill="#002f34" />
                         <circle cx="75" cy="115" r="10" fill="#f2f4f5" />
                         <circle cx="140" cy="120" r="26" fill="#002f34" />
@@ -442,10 +460,10 @@
                         <circle cx="111" cy="42" r="3.2" fill="#002f34" />
                         <circle cx="124" cy="44" r="3.2" fill="#002f34" />
                     </svg>
-                    <p class="text-xl font-bold mb-2">Здесь пока пусто</p>
-                    <p class="text-gray-500 mb-6">У вас нет объявлений в этом разделе.</p>
+                    <p class="text-2xl font-bold text-[#002f34] mb-2">Здесь пока пусто</p>
+                    <p class="text-gray-500 mb-8 max-w-sm mx-auto">У вас нет объявлений в разделе «{{ current_status }}». Начните продавать прямо сейчас!</p>
                     <a href="{% url 'add_announcement_page' %}"
-                        class="bg-[#002f34] text-white px-8 py-3 rounded font-bold hover:bg-[#004d55] transition inline-block">
+                        class="bg-[#002f34] text-white px-10 py-3 rounded font-bold hover:bg-[#004d55] transition inline-block mb-12">
                         Создать объявление
                     </a>
                 </div>
